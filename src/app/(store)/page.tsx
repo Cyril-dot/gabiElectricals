@@ -26,7 +26,7 @@ const STATS: [string, string][] = [
 export default async function HomePage() {
   const [slides, cats, featured, best, fresh, flash, testimonials, brands, services, prodImgs] = await Promise.all([
     prisma.heroSlide.findMany({ where: { active: true }, orderBy: { sortOrder: 'asc' } }),
-    prisma.category.findMany({ orderBy: { sortOrder: 'asc' } }),
+    prisma.category.findMany({ orderBy: { sortOrder: 'asc' }, include: { _count: { select: { products: true } } } }),
     prisma.product.findMany({ where: { featured: true, status: 'PUBLISHED' }, take: 10, include: { category: true } }),
     prisma.product.findMany({ where: { bestSeller: true, status: 'PUBLISHED' }, take: 8, include: { category: true } }),
     prisma.product.findMany({ where: { isNew: true, status: 'PUBLISHED' }, take: 8, include: { category: true } }),
@@ -58,16 +58,21 @@ export default async function HomePage() {
         <div className="container-x">
           <Stagger className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" gap={0.05}>
             {cats.map(c => (
-              <StaggerItem key={c.slug} className="snap-start shrink-0 w-[200px] md:w-[220px]">
-                <Link href={`/shop?cat=${c.slug}`} className="group relative block rounded-2xl overflow-hidden border border-line hover:border-volt/60 hover:-translate-y-1 hover:shadow-pop transition-all duration-300 h-[260px]">
+              <StaggerItem key={c.slug} className="snap-start shrink-0 w-[172px] md:w-[220px]">
+                <Link href={`/shop?cat=${c.slug}`} className="group relative block rounded-[1.6rem] overflow-hidden h-[244px] md:h-[264px] border border-white/10 ring-1 ring-navy/10 dark:ring-white/10 shadow-soft hover:shadow-pop hover:-translate-y-1.5 active:scale-[0.96] transition-all duration-300 ease-out">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={catImg.get(c.id) ?? '/icon.svg'} alt="" width={220} height={260} loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  <span className="absolute inset-0 bg-gradient-to-t from-navy via-navy/35 to-transparent" aria-hidden="true" />
-                  <span className="absolute top-3 left-3 grid place-items-center w-10 h-10 rounded-xl bg-volt text-navy shadow-sm group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300"><Icon name={categoryIcon(c.icon)} size={20} /></span>
+                  <img src={catImg.get(c.id) ?? '/icon.svg'} alt="" width={220} height={264} loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110" />
+                  <span className="absolute inset-0 bg-gradient-to-t from-navy via-navy/25 to-navy/0" aria-hidden="true" />
+                  {/* volt accent line */}
+                  <span className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-volt via-volt/50 to-transparent origin-left scale-x-100 md:scale-x-0 md:group-hover:scale-x-100 transition-transform duration-500" aria-hidden="true" />
+                  {/* glass icon chip */}
+                  <span className="absolute top-3 left-3 grid place-items-center w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 text-white shadow-lg group-hover:bg-volt group-hover:text-navy group-hover:border-volt group-hover:-rotate-6 group-hover:scale-110 transition-all duration-300"><Icon name={categoryIcon(c.icon)} size={21} /></span>
+                  {/* item count */}
+                  <span className="absolute top-[18px] right-3 text-[10px] font-black text-white/95 bg-navy/45 backdrop-blur-md border border-white/15 rounded-full px-2.5 py-1">{c._count.products} items</span>
                   <span className="absolute bottom-0 inset-x-0 p-4">
-                    <span className="block font-display font-bold text-white text-[16px] leading-tight">{c.name}</span>
-                    <span className="mt-1 inline-flex items-center gap-1 text-[12px] font-bold text-volt opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">Shop now <Icon name="arrow_forward" size={14} /></span>
+                    <span className="block font-display font-bold text-white text-[15.5px] md:text-[17px] leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/0.5)]">{c.name}</span>
+                    <span className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-black text-volt">Shop now <Icon name="arrow_forward" size={13} className="group-hover:translate-x-1 transition-transform" /></span>
                   </span>
                 </Link>
               </StaggerItem>
@@ -155,16 +160,19 @@ export default async function HomePage() {
         <div className="container-x">
           <Stagger className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" gap={0.06}>
             {services.map(s => (
-              <StaggerItem key={s.id} className="snap-start shrink-0 w-[260px] md:w-[300px]">
-                <Link href={`/services/${s.slug}`} className="group relative block rounded-2xl overflow-hidden border border-line hover:border-volt/60 hover:-translate-y-1 hover:shadow-pop transition-all duration-300 h-[300px]">
+              <StaggerItem key={s.id} className="snap-start shrink-0 w-[248px] md:w-[300px]">
+                <Link href={`/services/${s.slug}`} className="group relative block rounded-[1.6rem] overflow-hidden h-[292px] md:h-[304px] border border-white/10 ring-1 ring-navy/10 dark:ring-white/10 shadow-soft hover:shadow-pop hover:-translate-y-1.5 active:scale-[0.96] transition-all duration-300 ease-out">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.image ?? '/images/hero/hero-technician.webp'} alt={s.name} width={300} height={300} loading="lazy"
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.08]" />
-                  <span className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-transparent" aria-hidden="true" />
-                  <span className="absolute top-3 right-3 bg-volt text-navy text-[11px] font-black rounded-lg px-2.5 py-1">From {ghs(s.basePrice, { cents: false })}</span>
+                  <img src={s.image ?? '/images/hero/hero-technician.webp'} alt={s.name} width={300} height={304} loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.08]" />
+                  <span className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-navy/0" aria-hidden="true" />
+                  {/* glass price badge */}
+                  <span className="absolute top-3 right-3 bg-white/15 backdrop-blur-md border border-white/25 text-white text-[11px] font-black rounded-xl px-3 py-1.5 shadow-lg">From {ghs(s.basePrice, { cents: false })}</span>
+                  {/* certified chip */}
+                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 bg-volt/90 text-navy text-[10px] font-black rounded-full px-2.5 py-1.5 shadow-lg"><Icon name="verified" size={12} /> Certified</span>
                   <span className="absolute bottom-0 inset-x-0 p-5">
-                    <span className="block font-display font-bold text-white text-[17px] leading-tight">{s.name}</span>
-                    <span className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-volt">Book now <Icon name="arrow_forward" size={14} className="group-hover:translate-x-1 transition-transform" /></span>
+                    <span className="block font-display font-bold text-white text-[17.5px] md:text-[18px] leading-tight [text-shadow:0_2px_12px_rgb(0_0_0/0.5)]">{s.name}</span>
+                    <span className="mt-3 inline-flex items-center gap-2 bg-volt text-navy text-[12.5px] font-black rounded-full pl-4 pr-2 py-1.5 shadow-lg group-hover:gap-3 group-active:scale-95 transition-all duration-300">Book now <span className="grid place-items-center w-7 h-7 rounded-full bg-navy text-volt"><Icon name="arrow_forward" size={15} /></span></span>
                   </span>
                 </Link>
               </StaggerItem>
