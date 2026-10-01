@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 200 150" role="img" aria-label="Prepaid Meter Keypad">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1B3A"/><stop offset="1" stop-color="#123063"/></linearGradient></defs>
+<rect width="200" height="150" fill="url(#g)"/>
+<g stroke="#FFB020" stroke-width="0.6" opacity="0.25" fill="none"><path d="M0 15 H40 V35 H80"/><path d="M200 130 H160 V110 H120"/><circle cx="40" cy="35" r="1.6" fill="#FFB020"/><circle cx="160" cy="110" r="1.6" fill="#FFB020"/></g>
+<g transform="translate(0,5)" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"><path d="M55 35 h90 v125 h-90 z M70 55 h60 v40 h-60 z M70 110 h15 M95 110 h15 M120 110 h10 M70 128 h60"/></g>
+<text x="100" y="143" text-anchor="middle" font-family="Manrope,Arial" font-size="6.5" fill="#FFB020">Prepaid Meter Keypad</text>
+<text x="6" y="12" font-family="Manrope,Arial" font-weight="700" font-size="7" fill="#FFF">Gabi<tspan fill="#FFB020">Electricals</tspan></text>
+</svg>

@@ -1,0 +1,819 @@
+// GabiElectricals — Prisma schema
+// DEMO note: SQLite = zero-config local run. For production set
+// provider = "postgresql" and DATABASE_URL to your Postgres instance (see README).
+
+generator client {
+  provider     = "prisma-client-js"
+  // Vercel/Netlify serverless ships a different OpenSSL build than this PC.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── AUTH & USERS ───────────────────────────
+
+enum Role {
+  CUSTOMER
+  TECHNICIAN
+  ADMIN
+  SUPER_ADMIN
+  AFFILIATE
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  passwordHash    String
+  role            Role     @default(CUSTOMER)
+  image           String?
+  active          Boolean  @default(true)
+  emailVerified   Boolean  @default(false)
+  otpCode         String?  // phone/email login OTP (demo)
+  otpExpiresAt    DateTime?
+  twoFactorSecret String?  // 2FA for admin (TOTP base32)
+  referralCode    String   @unique
+  referredById    String?
+  referredBy      User?    @relation("ReferralChain", fields: [referredById], references: [id])
+  referralsMade   User[]   @relation("ReferralChain")
+  walletCredit    Float    @default(0) // referral credit, minor = GHS
+  commissionPct   Float?   // affiliate override
+  tier            String?  // affiliate tier: BRONZE|SILVER|GOLD
+  addresses       Address[]
+  reviews         Review[]
+  orders          Order[]
+  bookings        Booking[]
+  cartItems       CartLine[]
+  ledger          LedgerEntry[]
+  payouts         PayoutRequest[]
+  notifications   NotificationLog[] @relation("NotifUser")
+  activity        ActivityLog[]
+  techProfile     Technician?
+  wishlist        WishlistItem[]
+  compareList     CompareItem[]
+  stockAlerts     StockAlert[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String  @default("Home")
+  region    String
+  city      String
+  landmark  String?
+  gps       String? // Ghana Post GPS e.g. GA-123-4567
+  phone     String
+  isDefault Boolean @default(false)
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────── CATALOG ───────────────────────────
+
+model Category {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  image       String?
+  icon        String? // svg key
+  sortOrder   Int     @default(0)
+  products    Product[]
+  SEO         SeoMeta?
+}
+
+model Brand {
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  logo     String?
+  products Product[]
+}
+
+enum ProductStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  name            String
+  sku             String        @unique
+  description     String
+  shortDesc       String?
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id])
+  brandId         String?
+  brand           Brand?        @relation(fields: [brandId], references: [id])
+  price           Float // selling price GHS
+  costPrice       Float         @default(0) // for margin calc
+  compareAtPrice  Float? // "was" price
+  stock           Int           @default(0)
+  lowStockAlert   Int           @default(5)
+  warrantyMonths  Int           @default(0)
+  badges          String        @default("[]") // JSON array: "100% Genuine", "Warranty Included"...
+  images          String        @default("[]") // JSON array of /images paths
+  specs           String        @default("[]") // JSON array {label,value}
+  tags            String        @default("[]") // JSON array
+  rating          Float         @default(0)
+  reviewCount     Int           @default(0)
+  soldCount       Int           @default(0)
+  featured        Boolean       @default(false)
+  bestSeller      Boolean       @default(false)
+  isNew           Boolean       @default(false)
+  status          ProductStatus @default(PUBLISHED)
+  weightKg        Float?
+  metaTitle       String?
+  metaDescription String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  reviews         Review[]
+  orderItems      OrderItem[]
+  cartLines       CartLine[]
+  wishlist        WishlistItem[]
+  compare         CompareItem[]
+  stockAlerts     StockAlert[]
+  couponProducts  Coupon[]      @relation("CouponProducts")
+  flashDeals      FlashSale[]
+  bundleItems     BundleItem[]
+}
+
+model Review {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  orderId   String?   // verified purchase link
+  rating    Int // 1-5
+  title     String
+  body      String
+  verified  Boolean   @default(false)
+  status    String    @default("PUBLISHED") // PUBLISHED|PENDING|REJECTED
+  createdAt DateTime  @default(now())
+}
+
+// ─────────────────────────── ORDERS & CART ───────────────────────────
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_PAID
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  orderNo      String      @unique // GE-2026-00123
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id])
+  email        String
+  phone        String
+  status       OrderStatus @default(PENDING_PAYMENT)
+  subtotal     Float
+  discount     Float       @default(0)
+  deliveryFee  Float       @default(0)
+  vat          Float       @default(0)
+  levy         Float       @default(0)
+  total        Float
+  walletUsed   Float       @default(0)
+  couponId     String?
+  coupon       Coupon?     @relation(fields: [couponId], references: [id])
+  zoneId       String?
+  zone         DeliveryZone? @relation(fields: [zoneId], references: [id])
+  fulfilment   String      @default("DELIVERY") // DELIVERY|PICKUP
+  addrRegion   String?
+  addrCity     String?
+  addrLandmark String?
+  addrGps      String?
+  addrLine     String?
+  referralCode String?     // attribution at checkout
+  giftNote     String?
+  items        OrderItem[]
+  payments     Payment[]
+  events       OrderEvent[]
+  invoiceNo    String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id])
+  name      String
+  image     String?
+  sku       String?
+  price     Float
+  qty       Int
+  addOnInstall Boolean @default(false) // "Add installation"
+}
+
+model OrderEvent {
+  id      String   @id @default(cuid())
+  orderId String
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status  String
+  note    String?
+  at      DateTime @default(now())
+}
+
+model CartLine {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  qty       Int      @default(1)
+  install   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+model WishlistItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model CompareItem {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model StockAlert {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([productId, email])
+}
+
+model DeliveryZone {
+  id        String  @id @default(cuid())
+  name      String
+  regions   String // JSON array of region names covered
+  fee       Float
+  freeOver  Float? // free delivery threshold
+  etaDays   Int     @default(2)
+  active    Boolean @default(true)
+  orders    Order[]
+}
+
+// ─────────────────────────── SERVICES & BOOKINGS ───────────────────────────
+
+model Service {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  name         String
+  description  String
+  shortDesc    String?
+  basePrice    Float // GHS from-price
+  depositPct   Float     @default(30)
+  durationMins Int       @default(120)
+  image        String?
+  gallery      String    @default("[]")
+  includes     String    @default("[]") // JSON list
+  faqs         String    @default("[]") // JSON [{q,a}]
+  urgencyJson  String    @default("{}") // {STANDARD:0,URGENT:60,EMERGENCY:150} surcharges
+  active       Boolean   @default(true)
+  sortOrder    Int       @default(0)
+  bookings     Booking[]
+  SEO          SeoMeta?
+}
+
+enum BookingStatus {
+  REQUESTED
+  CONFIRMED
+  ASSIGNED
+  ON_THE_WAY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REVIEWED
+}
+
+enum Urgency {
+  STANDARD
+  URGENT
+  EMERGENCY
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  bookingNo    String        @unique // GB-2026-0045
+  userId       String?
+  user         User?         @relation(fields: [userId], references: [id])
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id])
+  technicianId String?
+  technician   Technician?   @relation(fields: [technicianId], references: [id])
+  date         DateTime // scheduled day (normalized to midnight)
+  timeSlot     String // "09:00-11:00"
+  status       BookingStatus @default(REQUESTED)
+  urgency      Urgency       @default(STANDARD)
+  region       String
+  city         String
+  landmark     String?
+  gps          String?
+  mapLat       Float?
+  mapLng       Float?
+  description  String
+  media        String        @default("[]") // JSON array of uploaded file paths
+  contactName  String
+  contactPhone String
+  contactEmail String?
+  paymentMode  String        @default("DEPOSIT") // DEPOSIT|FULL|AFTER|QUOTE
+  price        Float         @default(0) // quoted/confirmed price
+  depositDue   Float         @default(0)
+  rating       Int?
+  review       String?
+  cancelReason String?
+  rescheduleCount Int        @default(0)
+  events       BookingEvent[]
+  payments     Payment[]
+  quote        Quote?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model BookingEvent {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  at        DateTime @default(now())
+}
+
+model Technician {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio           String?
+  specialties   String    @default("[]") // JSON
+  regions       String    @default("[]") // JSON
+  avatar        String?
+  rating        Float     @default(5)
+  jobsCompleted Int       @default(0)
+  available     Boolean   @default(true)
+  bookings      Booking[]
+}
+
+model BlockedDate {
+  id       String   @id @default(cuid())
+  date     DateTime
+  reason   String?
+  serviceId String? // null = all services
+}
+
+model SlotCapacity {
+  id         String @id @default(cuid())
+  serviceId  String?
+  dayOfWeek  Int // 0=Sunday
+  capacity   Int    @default(3)
+  slotsJson  String // JSON ["08:00-10:00","10:00-12:00",...]
+}
+
+// ─────────────────────────── QUOTES ───────────────────────────
+
+model Quote {
+  id          String    @id @default(cuid())
+  quoteNo     String    @unique // GQ-2026-012
+  bookingId   String?   @unique
+  booking     Booking?  @relation(fields: [bookingId], references: [id])
+  customerName String
+  customerPhone String
+  customerEmail String?
+  description String
+  itemsJson   String    @default("[]") // [{label,qty,amount}]
+  amount      Float
+  status      String    @default("DRAFT") // DRAFT|SENT|ACCEPTED|DECLINED|PAID|EXPIRED
+  validUntil  DateTime?
+  // payment link resolved via PaymentLink.forType="QUOTE" + forId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─────────────────────────── PAYMENTS ───────────────────────────
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_PAID
+  EXPIRED
+  AWAITING_APPROVAL // manual transfer with proof
+}
+
+enum PaymentMethod {
+  MOMO_MTN
+  MOMO_TELECEL
+  MOMO_AT
+  CARD
+  BANK_TRANSFER
+  GHIPSS
+  QR
+  CASH
+  MANUAL_TRANSFER
+  PAY_ON_DELIVERY
+  WALLET
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  reference   String        @unique // GE_PAY_xxx
+  amount      Float
+  status      PaymentStatus @default(PENDING)
+  method      PaymentMethod
+  provider    String        @default("MOCK") // MOCK|PAYSTACK|HUBTEL
+  orderId     String?
+  order       Order?        @relation(fields: [orderId], references: [id])
+  bookingId   String?
+  booking     Booking?      @relation(fields: [bookingId], references: [id])
+  linkId      String?
+  link        PaymentLink?  @relation(fields: [linkId], references: [id])
+  payerPhone  String?
+  payerEmail  String?
+  metaJson    String        @default("{}") // gateway response etc
+  refundNote  String?
+  proofImage  String? // manual transfer receipt
+  expiresAt   DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
+  events      PaymentEvent[]
+}
+
+model PaymentEvent {
+  id        String   @id @default(cuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  type      String // INITIATED|PENDING|SUCCESS|FAILED|WEBHOOK|REFUND
+  note      String?
+  at        DateTime @default(now())
+}
+
+model PaymentLink {
+  id          String      @id @default(cuid())
+  code        String      @unique // short code for /pay/[code]
+  label       String
+  amount      Float       @default(0) // 0 = flexible/custom amount
+  forType     String      @default("CUSTOM") // ORDER|BOOKING|QUOTE|CUSTOM
+  forId       String?
+  description String?
+  status      String      @default("ACTIVE") // ACTIVE|PAID|EXPIRED|CANCELLED
+  createdBy   String? // admin/tech userId
+  expiresAt   DateTime?
+  payments    Payment[]
+  qrSeed      String?
+  createdAt   DateTime    @default(now())
+}
+
+// ─────────────────────────── MARKETING ───────────────────────────
+
+enum CouponType {
+  PERCENT
+  FIXED
+  FREE_DELIVERY
+}
+
+model Coupon {
+  id               String     @id @default(cuid())
+  code             String     @unique
+  type             CouponType
+  value            Float
+  minSpend         Float      @default(0)
+  maxDiscount      Float?
+  usageLimit       Int?
+  usedCount        Int        @default(0)
+  perCustomerLimit Int        @default(1)
+  firstOrderOnly   Boolean    @default(false)
+  referralOnly     Boolean    @default(false)
+  categoryIds      String     @default("[]") // JSON
+  productIds       String     @default("[]") // JSON relation placeholder
+  products         Product[]  @relation("CouponProducts")
+  startsAt         DateTime?
+  endsAt           DateTime?
+  active           Boolean    @default(true)
+  orders           Order[]
+}
+
+model FlashSale {
+  id        String   @id @default(cuid())
+  name      String
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  salePrice Float
+  qtyLimit  Int      @default(20)
+  sold      Int      @default(0)
+  startsAt  DateTime
+  endsAt    DateTime
+  active    Boolean  @default(true)
+}
+
+model Bundle {
+  id       String       @id @default(cuid())
+  name     String
+  slug     String       @unique
+  description String?
+  price    Float
+  compareAt Float?
+  image    String?
+  items    BundleItem[]
+  active   Boolean      @default(true)
+}
+
+model BundleItem {
+  id        String  @id @default(cuid())
+  bundleId  String
+  bundle    Bundle  @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int     @default(1)
+}
+
+model Popup {
+  id            String   @id @default(cuid())
+  name          String
+  kind          String // WELCOME|EXIT|TIMED|SCROLL|CART|SEASONAL|BOOKING
+  headline      String
+  body          String
+  image         String?
+  buttonLabel   String   @default("Claim Offer")
+  buttonHref    String?
+  couponCode    String?
+  whatsappBtn   Boolean  @default(false)
+  captureLead   Boolean  @default(false)
+  bgColor       String   @default("#0B1B3A")
+  textColor     String   @default("#FFFFFF")
+  accentColor   String   @default("#FFB020")
+  targetingJson String   @default("{}") // {pages:[],visitor:"ALL|NEW|RETURNING",device:"ALL|MOBILE|DESKTOP",delaySec,scrollPct}
+  frequency     String   @default("SESSION") // SESSION|DAY|WEEK|ONCE
+  priority      Int      @default(0)
+  active        Boolean  @default(false)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  impressions   Int      @default(0)
+  conversions   Int      @default(0)
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  email     String
+  phone     String?
+  name      String?
+  source    String // POPUP|NEWSLETTER|CONTACT|WHOLESALE|QUOTE
+  popupId   String?
+  metaJson  String   @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────── REFERRALS & WALLET ───────────────────────────
+
+model ReferralVisit {
+  id         String   @id @default(cuid())
+  code       String
+  referrerId String
+  fingerprint String? // fraud heuristics
+  converted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model LedgerEntry {
+  id      String  @id @default(cuid())
+  userId  String
+  user    User    @relation(fields: [userId], references: [id])
+  amount  Float // + credit / - debit
+  reason  String // REFERRAL_BONUS|ORDER_REWARD|CHECKOUT_USE|PAYOUT|ADMIN_ADJUST
+  refType String? // ORDER|PAYOUT|REFERRAL
+  refId   String?
+  balanceAfter Float
+  createdAt DateTime @default(now())
+}
+
+model PayoutRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Float
+  method    String   @default("MOMO")
+  momoNumber String
+  network   String   @default("MTN")
+  status    String   @default("PENDING") // PENDING|APPROVED|PAID|REJECTED
+  note      String?
+  processedBy String?
+  createdAt DateTime @default(now())
+}
+
+model AffiliateApplication {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  phone       String
+  audience    String // description of reach
+  status      String   @default("PENDING") // PENDING|APPROVED|REJECTED
+  commissionPct Float  @default(5)
+  createdAt   DateTime @default(now())
+}
+
+// ─────────────────────────── CONTENT & CMS ───────────────────────────
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  excerpt     String
+  content     String // markdown-lite
+  cover       String?
+  tags        String   @default("[]")
+  author      String   @default("GabiElectricals Team")
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  views       Int      @default(0)
+  SEO         SeoMeta?
+}
+
+model Faq {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  category  String  @default("General") // General|Shop|Delivery|Payments|Services
+  context   String  @default("PUBLIC") // PUBLIC|CHATBOT
+  sortOrder Int     @default(0)
+}
+
+model Testimonial {
+  id      String  @id @default(cuid())
+  name    String
+  role    String?
+  quote   String
+  rating  Int     @default(5)
+  avatar  String?
+  area    String? // Accra, Kumasi...
+  active  Boolean @default(true)
+}
+
+model HeroSlide {
+  id         String  @id @default(cuid())
+  headline   String
+  sub        String
+  ctaLabel   String
+  ctaHref    String
+  cta2Label  String?
+  cta2Href   String?
+  image      String
+  badge      String?
+  sortOrder  Int     @default(0)
+  active     Boolean @default(true)
+}
+
+model AnnouncementBar {
+  id     String  @id @default(cuid())
+  text   String
+  href   String?
+  active Boolean @default(true)
+}
+
+model SeoMeta {
+  id        String  @id @default(cuid())
+  entity    String // type:name
+  uniqueKey String  @unique
+  title     String?
+  desc      String?
+  categoryId String? @unique
+  category   Category? @relation(fields: [categoryId], references: [id])
+  serviceId  String? @unique
+  service    Service?  @relation(fields: [serviceId], references: [id])
+  blogId     String? @unique
+  blog       BlogPost? @relation(fields: [blogId], references: [id])
+}
+
+// ─────────────────────────── SYSTEM ───────────────────────────
+
+model Setting {
+  key       String @id
+  valueJson String // JSON
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  channel   String // SMS|EMAIL|WHATSAPP|PUSH
+  to        String
+  subject   String?
+  body      String
+  status    String   @default("LOGGED") // LOGGED|SENT|FAILED
+  template  String?
+  userId    String?
+  user      User?    @relation("NotifUser", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String // LOGIN|PRODUCT_CREATED|PAYMENT_REFUNDED|...
+  entity    String?
+  entityId  String?
+  ip        String?
+  metaJson  String   @default("{}")
+  createdAt DateTime @default(now())
+}
+
+model UploadedFile {
+  id        String   @id @default(cuid())
+  path      String   @unique
+  name      String
+  mime      String
+  size      Int
+  kind      String   @default("GENERAL") // PRODUCT|BOOKING|PROOF|LIBRARY
+  userId    String?
+  createdAt DateTime @default(now())
+}
+
+model WarrantyRegistration {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  product   String
+  serial    String
+  orderId   String?
+  purchased DateTime?
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    String   @default("OPEN") // OPEN|ANSWERED|CLOSED
+  reply     String?
+  createdAt DateTime @default(now())
+}
+
+model AbandonedCart {
+  id         String   @id @default(cuid())
+  email      String
+  phone      String?
+  itemsJson  String
+  value      Float
+  recovered  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  type      String // PAGE_VIEW|ADD_TO_CART|CHECKOUT_START|ORDER|BOOKING|QR_SHOW|COUPON_USE|POPUP_VIEW|POPUP_CONVERT|REFERRAL_CLICK
+  payload   String   @default("{}")
+  value     Float?
+  sessionId String?
+  createdAt DateTime @default(now())
+}

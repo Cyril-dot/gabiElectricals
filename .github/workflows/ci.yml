@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: cp .env.example .env
+      - run: npx prisma generate && npx prisma db push
+      - run: npx tsx prisma/seed.ts
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - run: npm start & sleep 8 && npx playwright install --with-deps chromium && npx playwright test
+        env:
+          DATABASE_URL: file:./dev.db

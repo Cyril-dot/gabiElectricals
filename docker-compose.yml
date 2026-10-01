@@ -1,0 +1,38 @@
+services:
+  # Demo/default: SQLite on a named volume — `docker compose up --build` works with no extra services.
+  web:
+    build: .
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: file:/app/data/prod.db
+      DEMO_MODE: "true"
+      SESSION_SECRET: change-me-please-change-me
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+    volumes:
+      - gbidata:/app/data
+      - gbiuploads:/app/public/uploads
+    restart: unless-stopped
+
+  # Live mode: start Postgres with `docker compose --profile live up -d`, then point the app at it:
+  #   export DATABASE_URL=postgresql://gabi:gabi@db:5432/gabielectricals?schema=public
+  #   set provider = "postgresql" in prisma/schema.prisma
+  #   docker compose exec web npx prisma db push --skip-generate
+  db:
+    image: postgres:16-alpine
+    profiles: ["live"]
+    environment:
+      POSTGRES_USER: gabi
+      POSTGRES_PASSWORD: ***
+      POSTGRES_DB: gabielectricals
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD pg_isready -U gabi"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    restart: unless-stopped
+
+volumes:
+  gbidata:
+  gbiuploads:
+  pgdata:
