@@ -215,7 +215,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
               const meta = METHOD_META[m];
               return (
                 <label key={m} className={`flex items-start gap-3 border rounded-xl p-3.5 cursor-pointer transition-colors min-h-[56px] ${method === m ? 'border-blue bg-blue/5 ring-1 ring-blue/30' : 'border-line hover:border-blue/40'}`}>
-                  <input type="radio" name="paymethod" value={m} checked={method === m} onChange={() => setMethod(m)} className="mt-1 w-4 h-4 accent-[#1B1B1D]" />
+                  <input type="radio" name="paymethod" value={m} checked={method === m} onChange={() => setMethod(m)} className="mt-1 w-4 h-4 accent-[#0C4A55]" />
                   <span className="flex-1">
                     <span className="font-bold text-sm">{meta.icon} {meta.label}</span>
                     <span className="block text-[12px] text-soft mt-0.5">{meta.note}</span>
@@ -256,7 +256,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
             <div className="flex justify-between items-center">
               <dt>
                 <label className="flex items-center gap-1.5 cursor-pointer font-bold text-gold-dark text-[13px] min-h-[40px]">
-                  <input type="checkbox" checked={useWallet} onChange={e => setUseWallet(e.target.checked)} className="w-4 h-4 accent-[#D7FF3E]" />
+                  <input type="checkbox" checked={useWallet} onChange={e => setUseWallet(e.target.checked)} className="w-4 h-4 accent-[#22D3EE]" />
                   Use referral credit
                 </label>
               </dt>

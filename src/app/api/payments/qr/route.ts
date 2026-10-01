@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const dataUrl = await QRCode.toDataURL(text, {
     width: 480,
     margin: 2,
-    color: { dark: '#141311', light: '#FFFFFF' },
+    color: { dark: '#062E33', light: '#FFFFFF' },
     errorCorrectionLevel: 'M',
   });
   return NextResponse.json({ dataUrl });

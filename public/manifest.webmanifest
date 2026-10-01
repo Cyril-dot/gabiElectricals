@@ -4,8 +4,8 @@
   "description": "Genuine electrical products and certified electricians across Ghana.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#141311",
-  "theme_color": "#D7FF3E",
+  "background_color": "#062E33",
+  "theme_color": "#22D3EE",
   "icons": [
     {
       "src": "/images/brand/logo-mark.webp",

@@ -232,7 +232,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <option value="24">24 months+</option>
             </select>
             <label className="flex items-center gap-2 text-sm font-bold pt-1 cursor-pointer min-h-[40px]">
-              <input type="checkbox" name="stock" value="1" defaultChecked={s(sp, 'stock') === '1'} className="w-4 h-4 accent-[#1B1B1D]" />
+              <input type="checkbox" name="stock" value="1" defaultChecked={s(sp, 'stock') === '1'} className="w-4 h-4 accent-[#0C4A55]" />
               In stock only
             </label>
             <button className="btn-primary w-full !py-2.5 text-sm mt-1">Apply filters</button>

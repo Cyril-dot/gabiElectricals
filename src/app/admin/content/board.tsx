@@ -218,7 +218,7 @@ function EntityForm({ model, fields, editing, busy, run, onSaved }: { model: str
         {fields.map((fd) => (
           <Field key={fd.name} label={fd.label}>
             {fd.type === 'bool' ? (
-              <input type="checkbox" className="h-5 w-5 accent-[#1B1B1D]" checked={Boolean(get(fd))} onChange={(e) => set(fd.name, e.target.checked)} />
+              <input type="checkbox" className="h-5 w-5 accent-[#0C4A55]" checked={Boolean(get(fd))} onChange={(e) => set(fd.name, e.target.checked)} />
             ) : fd.type === 'textarea' ? (
               <textarea rows={fd.rows ?? 3} required={fd.required} className={inputCls} value={String(get(fd))} onChange={(e) => set(fd.name, e.target.value)} />
             ) : fd.type === 'select' ? (

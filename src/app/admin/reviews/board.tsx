@@ -47,7 +47,7 @@ export function ReviewsBoard({ reviews, counts, summary, activeStatus }: { revie
               </tr></thead>
               <tbody>{reviews.map((r) => (
                 <tr key={r.id} className="border-b border-line/60 last:border-0 align-top">
-                  <td className={tdCls}>{r.status === 'PENDING' && <input type="checkbox" className="h-4 w-4 accent-[#1B1B1D]" checked={sel.has(r.id)} onChange={() => setSel((p) => { const n = new Set(p); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} />}</td>
+                  <td className={tdCls}>{r.status === 'PENDING' && <input type="checkbox" className="h-4 w-4 accent-[#0C4A55]" checked={sel.has(r.id)} onChange={() => setSel((p) => { const n = new Set(p); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} />}</td>
                   <td className={tdCls}>
                     <p className="text-sm font-bold text-gold-dark dark:text-gold">{stars(r.rating)} <span className="ml-1 text-ink dark:text-white">{r.title}</span></p>
                     <p className="mt-0.5 max-w-md text-xs text-soft">{r.body}</p>

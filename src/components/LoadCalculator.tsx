@@ -42,7 +42,7 @@ export function LoadCalculator() {
         <div className="grid sm:grid-cols-2 gap-2">
           {APPLIANCES.map(a => (
             <label key={a.key} className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 cursor-pointer text-sm font-semibold transition-colors ${sel[a.key] ? 'border-blue bg-blue/5 text-blue' : 'border-line hover:border-blue/40'}`}>
-              <input type="checkbox" checked={!!sel[a.key]} onChange={() => setSel(s => ({ ...s, [a.key]: !s[a.key] }))} className="w-4 h-4 accent-[#1B1B1D]" />
+              <input type="checkbox" checked={!!sel[a.key]} onChange={() => setSel(s => ({ ...s, [a.key]: !s[a.key] }))} className="w-4 h-4 accent-[#0C4A55]" />
               <span className="flex-1">{a.label}</span>
               <span className="text-soft text-xs">{a.w}W</span>
             </label>
@@ -52,10 +52,10 @@ export function LoadCalculator() {
       <div className="grid sm:grid-cols-2 gap-6 mb-8">
         <label className="text-sm font-bold space-y-2">
           Typical hours without ECG light: <span className="text-blue">{hours}h</span>
-          <input type="range" min={2} max={12} value={hours} onChange={e => setHours(+e.target.value)} className="w-full accent-[#D7FF3E]" aria-label="Dark hours" />
+          <input type="range" min={2} max={12} value={hours} onChange={e => setHours(+e.target.value)} className="w-full accent-[#22D3EE]" aria-label="Dark hours" />
         </label>
         <label className="flex items-center gap-3 text-sm font-bold cursor-pointer pt-4">
-          <input type="checkbox" checked={solar} onChange={() => setSolar(v => !v)} className="w-4 h-4 accent-[#1B1B1D]" /> I also want solar charging (recommended)
+          <input type="checkbox" checked={solar} onChange={() => setSolar(v => !v)} className="w-4 h-4 accent-[#0C4A55]" /> I also want solar charging (recommended)
         </label>
       </div>
 

@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── "High Voltage" brand: warm charcoal + electric volt lime ── */
-  --color-blue: #1B1B1D;
-  --color-blue-dark: #000000;
-  --color-blue-deep: #000000;
-  --color-gold: #D7FF3E;
-  --color-gold-dark: #4D7C0F;
-  --color-volt: #D7FF3E;
+  /* ── "Arctic" brand: deep teal + ice cyan ── */
+  --color-blue: #0C4A55;
+  --color-blue-dark: #083038;
+  --color-blue-deep: #052730;
+  --color-gold: #22D3EE;
+  --color-gold-dark: #0E7490;
+  --color-volt: #22D3EE;
   --color-ember: #FF5C00;
-  --color-navy: #141311;
-  --color-navy-700: #201D16;
-  --color-navy-600: #2D2920;
-  --color-mist: #F4F3EC;
-  --color-line: #E4E2D6;
-  --color-ink: #16130E;
-  --color-soft: #6B6656;
+  --color-navy: #062E33;
+  --color-navy-700: #0A3D44;
+  --color-navy-600: #0F4E57;
+  --color-mist: #EEF4F4;
+  --color-line: #DCE7E7;
+  --color-ink: #0A1D22;
+  --color-soft: #5A6F74;
   --color-success: #12B76A;
   --color-danger: #F04438;
   --color-warning: #F79009;
@@ -44,15 +44,15 @@
   @keyframes slide-in-left { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: none; } }
   @keyframes ken-burns { from { transform: scale(1.02); } to { transform: scale(1.14) translate(-1.5%, 1%); } }
   @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-  @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgb(215 255 62 / 0.45); } 70% { box-shadow: 0 0 0 14px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgb(34 211 238 / 0.45); } 70% { box-shadow: 0 0 0 14px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 }
 
 .dark {
-  --color-mist: #17140D;
-  --color-line: #2B2617;
-  --color-ink: #F2EFE3;
-  --color-soft: #A8A28A;
-  --color-white: #141311;
+  --color-mist: #0B1C20;
+  --color-line: #1D3237;
+  --color-ink: #E9F3F4;
+  --color-soft: #93A8AD;
+  --color-white: #062E33;
 }
 
 html {
@@ -168,14 +168,14 @@ h1, h2, h3, .font-display {
 
 /* Gradient text accent */
 .text-glow-gold {
-  background: linear-gradient(100deg, #D7FF3E 20%, #F2FFB8 50%, #D7FF3E 80%);
+  background: linear-gradient(100deg, #22D3EE 20%, #BDF3FF 50%, #22D3EE 80%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
 /* Soft section divider glow */
 .glow-line { height: 1px; background: linear-gradient(90deg, transparent, var(--color-line) 20%, var(--color-line) 80%, transparent); }
 
-::selection { background: var(--color-volt); color: #141311; }
+::selection { background: var(--color-volt); color: #062E33; }
 
 * { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-volt) 55%, transparent) transparent; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }

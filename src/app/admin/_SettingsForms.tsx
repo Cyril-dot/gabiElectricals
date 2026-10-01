@@ -106,7 +106,7 @@ export function SettingsForms({ initial, defaultPayments, zones, templates }: {
           {Object.keys(pay.enabled).sort().map(m => (
             <label key={m} className="flex cursor-pointer items-center justify-between rounded-xl border border-line px-3 py-2 text-xs font-extrabold">
               {m.replaceAll('_', ' ')}
-              <input type="checkbox" checked={pay.enabled[m]} onChange={e => setPay({ ...pay, enabled: { ...pay.enabled, [m]: e.target.checked } })} className="h-4 w-4 accent-[#1B1B1D]" />
+              <input type="checkbox" checked={pay.enabled[m]} onChange={e => setPay({ ...pay, enabled: { ...pay.enabled, [m]: e.target.checked } })} className="h-4 w-4 accent-[#0C4A55]" />
             </label>
           ))}
         </div>
@@ -145,7 +145,7 @@ export function SettingsForms({ initial, defaultPayments, zones, templates }: {
               <input className={`${field} w-28`} inputMode="decimal" defaultValue={z.freeOver ?? ''} placeholder="Free over ₵" aria-label="Free delivery threshold"
                 onBlur={e => { const raw = e.target.value.trim(); const v = raw === '' ? null : parseFloat(raw) || 0; setZoneList(l => l.map(x => x.id === z.id ? { ...x, freeOver: v } : x)); void patchZone(z, { freeOver: v }); }} />
               <label className="flex items-center gap-2 text-xs font-extrabold">
-                <input type="checkbox" checked={z.active} onChange={e => { setZoneList(l => l.map(x => x.id === z.id ? { ...x, active: e.target.checked } : x)); void patchZone(z, { active: e.target.checked }); }} className="h-4 w-4 accent-[#1B1B1D]" />
+                <input type="checkbox" checked={z.active} onChange={e => { setZoneList(l => l.map(x => x.id === z.id ? { ...x, active: e.target.checked } : x)); void patchZone(z, { active: e.target.checked }); }} className="h-4 w-4 accent-[#0C4A55]" />
                 Active
               </label>
               <button onClick={() => void deleteZone(z)} aria-label={`Delete zone ${z.name}`} className="btn-ghost !p-2 text-danger"><Icon d={ICONS.trash} className="h-4 w-4" /></button>

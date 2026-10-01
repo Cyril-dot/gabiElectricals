@@ -12,7 +12,7 @@ type Popup = {
 type Blank = Omit<Popup, 'id' | 'impressions' | 'conversions'>;
 const blank: Blank = {
   name: '', kind: 'WELCOME', headline: '', body: '', image: '', buttonLabel: 'Claim Offer', buttonHref: '/shop',
-  couponCode: '', whatsappBtn: false, captureLead: false, bgColor: '#141311', textColor: '#FFFFFF', accentColor: '#D7FF3E',
+  couponCode: '', whatsappBtn: false, captureLead: false, bgColor: '#062E33', textColor: '#FFFFFF', accentColor: '#22D3EE',
   targeting: { pages: [], visitor: 'ALL', device: 'ALL' }, frequency: 'SESSION', priority: 0, active: false, startsAt: null, endsAt: null,
 };
 const KINDS = ['WELCOME', 'TIMED', 'SCROLL', 'EXIT', 'CART', 'SEASONAL', 'BOOKING'];
@@ -120,7 +120,7 @@ export function PopupBoard({ popups, couponCodes }: { popups: Popup[]; couponCod
               <p className="mt-2 text-sm opacity-90">{form.body || 'Popup body copy lands here.'}</p>
               {form.couponCode && <p className="mt-3 inline-block rounded-lg border border-dashed px-3 py-1 font-mono text-sm font-bold" style={{ borderColor: form.accentColor, color: form.accentColor }}>{form.couponCode}</p>}
               <div className="mt-4 flex flex-col gap-2">
-                <span className="rounded-xl px-4 py-2.5 text-sm font-extrabold" style={{ background: form.accentColor, color: '#141311' }}>{form.buttonLabel}</span>
+                <span className="rounded-xl px-4 py-2.5 text-sm font-extrabold" style={{ background: form.accentColor, color: '#062E33' }}>{form.buttonLabel}</span>
                 {form.whatsappBtn && <span className="rounded-xl border px-4 py-2 text-xs font-bold" style={{ borderColor: form.accentColor }}>Chat on WhatsApp</span>}
                 {form.captureLead && <span className="rounded-xl border border-white/40 px-4 py-2 text-xs">+ email capture field</span>}
               </div>

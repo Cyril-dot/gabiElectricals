@@ -133,7 +133,7 @@ export function CartClient({ tax, walletCredit, signedIn }: {
                   </td>
                   <td className="p-4">
                     <label className="flex items-center gap-1.5 cursor-pointer text-[12.5px] font-semibold whitespace-nowrap min-h-[40px]">
-                      <input type="checkbox" checked={!!i.install} onChange={e => setQty(i.slug, i.qty, e.target.checked)} className="w-4 h-4 accent-[#1B1B1D]" />
+                      <input type="checkbox" checked={!!i.install} onChange={e => setQty(i.slug, i.qty, e.target.checked)} className="w-4 h-4 accent-[#0C4A55]" />
                       +10% install
                     </label>
                   </td>

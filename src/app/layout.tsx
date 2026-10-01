@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   icons: { icon: '/images/brand/logo-mark.webp', apple: '/images/brand/logo-mark.webp' },
 };
 
-export const viewport: Viewport = { themeColor: '#141311', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#062E33', width: 'device-width', initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
