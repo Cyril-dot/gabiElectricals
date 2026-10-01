@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Badge, EmptyState, Field, Msg, api, bookTone, inputCls, labelCls, useMsg } from '@/components/ops/ui';
+import { Icon } from '@/components/Icon';
 import { ghs } from '@/lib/money';
 
 type Bk = { id: string; bookingNo: string; date: string; timeSlot: string; status: string; urgency: string; region: string; city: string; landmark: string | null; gps: string | null; contactName: string; contactPhone: string; serviceName: string; techName: string | null; technicianId: string | null; price: number; description: string };
@@ -135,14 +136,14 @@ function DetailPanel({ d, technicians, busy, run, closeHref, selTech }: { d: Det
           <p className="text-soft">{d.region} · {addr}</p>
           {d.gps && <a className="text-xs font-bold text-blue underline" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr + ' ' + d.gps)}`} target="_blank" rel="noreferrer">Open in Google Maps ({d.gps})</a>}
           <p className="rounded-lg bg-mist p-2 text-xs text-soft dark:bg-navy-700">{d.description}</p>
-          <p>Price {ghs(d.price)} · mode {d.paymentMode} · deposit {ghs(d.depositDue)}{d.quote ? ` · quote ${d.quote.quoteNo} (${d.quote.status})` : ''}{d.rating ? ` · ★${d.rating}` : ''}</p>
+          <p>Price {ghs(d.price)} · mode {d.paymentMode} · deposit {ghs(d.depositDue)}{d.quote ? ` · quote ${d.quote.quoteNo} (${d.quote.status})` : ''}{d.rating ? <> · <Icon name="star" size={12} className="inline text-gold" />{d.rating}</> : ''}</p>
           {d.media.length > 0 && <div className="flex flex-wrap gap-2">{d.media.map((m) => <a key={m} href={m} target="_blank" rel="noreferrer"><img src={m} alt="job media" className="h-16 w-16 rounded-lg border border-line object-cover" /></a>)}</div>}
           <div>
             <p className={labelCls}>Assign technician</p>
             <div className="flex gap-2">
               <select className={inputCls} value={techId} onChange={(e) => setTechId(e.target.value)}>
                 <option value="">Pick…</option>
-                {technicians.map((t) => <option key={t.id} value={t.id}>{t.name} ★{t.rating.toFixed(1)} ({t.jobs} jobs){t.available ? '' : ' — off'}</option>)}
+                {technicians.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.rating.toFixed(1)} rated · {t.jobs} jobs){t.available ? '' : ' — off'}</option>)}
               </select>
               <button disabled={!techId || busy !== null} className="btn-primary shrink-0 px-3 py-1.5 text-xs" onClick={() => run('assign', `/api/admin/bookings/${d.id}`, { technicianId: techId }, 'PATCH', 'Technician assigned + customer notified.')}>Assign</button>
             </div>

@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
 import CopyButton from '../CopyButton';
+import { Icon } from '@/components/Icon';
 import PayoutForm from './PayoutForm';
 
 export const dynamic = 'force-dynamic';
@@ -74,7 +75,7 @@ export default async function AccountReferrals() {
             </div>
             <p className="text-[12px] text-soft mt-2">Code: <b>{user.referralCode}</b> — friends get {ghs(settings.referral.friendReward)} off; you get {ghs(settings.referral.referrerReward)} when they pay.</p>
             <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer"
-              className="btn-gold mt-3 px-4 py-2 text-[13px] inline-flex">💬 Share on WhatsApp</a>
+              className="btn-gold mt-3 px-4 py-2 text-[13px] inline-flex"><Icon name="chat" size={14} className="inline" /> Share on WhatsApp</a>
           </div>
           <figure className="text-center shrink-0 mx-auto md:mx-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,11 +1,13 @@
+import { Icon, type IconName } from './Icon';
+
 export type TimelineEvent = { status: string; note?: string | null; at: Date | string };
 
-const STEPS = [
-  { key: 'PENDING_PAYMENT', label: 'Pending payment', icon: '🧾', hint: 'Order received — awaiting payment' },
-  { key: 'PAID', label: 'Paid', icon: '✅', hint: 'Payment confirmed' },
-  { key: 'PROCESSING', label: 'Processing', icon: '📦', hint: 'Packed at our Osu warehouse' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for delivery', icon: '🚚', hint: 'Rider is on the way' },
-  { key: 'DELIVERED', label: 'Delivered', icon: '🏠', hint: 'Job done — enjoy the power' },
+const STEPS: { key: string; label: string; icon: IconName; hint: string }[] = [
+  { key: 'PENDING_PAYMENT', label: 'Pending payment', icon: 'receipt_long', hint: 'Order received — awaiting payment' },
+  { key: 'PAID', label: 'Paid', icon: 'check_circle', hint: 'Payment confirmed' },
+  { key: 'PROCESSING', label: 'Processing', icon: 'inventory_2', hint: 'Packed at our Osu warehouse' },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for delivery', icon: 'local_shipping', hint: 'Rider is on the way' },
+  { key: 'DELIVERED', label: 'Delivered', icon: 'home', hint: 'Job done — enjoy the power' },
 ];
 
 function toD(x: Date | string): Date {
@@ -29,7 +31,7 @@ export function OrderTimeline({ status, events }: { status: string; events: Time
             )}
             <span aria-hidden
               className={`w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 border-2 ${active ? 'bg-blue text-white border-blue ring-4 ring-blue/20' : done ? 'bg-success/15 border-success' : 'bg-mist dark:bg-navy-700 border-line'}`}>
-              {done || active ? step.icon : '·'}
+              {done || active ? <Icon name={step.icon} size={20} /> : '·'}
             </span>
             <div className="pt-1">
               <p className={`text-sm font-bold ${done || active ? '' : 'text-soft'}`}>
@@ -43,7 +45,7 @@ export function OrderTimeline({ status, events }: { status: string; events: Time
       })}
       {cancelled && (
         <li className="flex gap-3.5 items-start pt-1">
-          <span aria-hidden className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 bg-danger/15 border-2 border-danger">{status === 'REFUNDED' ? '💸' : '✕'}</span>
+          <span aria-hidden className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 bg-danger/15 border-2 border-danger"><Icon name="cancel" size={20} /></span>
           <div>
             <p className="text-sm font-bold text-danger">{status === 'REFUNDED' ? 'Refunded' : 'Cancelled'}</p>
             <p className="text-[12.5px] text-soft">{events.find(e => e.status === status)?.note ?? 'Contact us if you need a hand.'}</p>
@@ -52,7 +54,7 @@ export function OrderTimeline({ status, events }: { status: string; events: Time
       )}
       {status === 'PARTIALLY_PAID' && (
         <li className="flex gap-3.5 items-start pt-1">
-          <span aria-hidden className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 bg-warning/15 border-2 border-warning">◐</span>
+          <span aria-hidden className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 bg-warning/15 border-2 border-warning"><Icon name="payments" size={20} /></span>
           <div>
             <p className="text-sm font-bold text-warning">Partially paid</p>
             <p className="text-[12.5px] text-soft">A deposit landed — settle the balance to dispatch.</p>

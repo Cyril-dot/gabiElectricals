@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import { REGIONS } from '@/lib/ghana';
+import { Icon } from '@/components/Icon';
 import { CheckoutClient } from './checkout-client';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,7 @@ export default async function CheckoutPage() {
   return (
     <div className="container-x py-6 md:py-10">
       <h1 className="font-display text-2xl md:text-3xl font-extrabold mb-1">Checkout</h1>
-      <p className="text-sm text-soft mb-6">🔒 Secure · totals verified server-side · no surprises after you pay.</p>
+      <p className="text-sm text-soft mb-6 inline-flex items-center gap-1"><Icon name="lock" size={14} />Secure · totals verified server-side · no surprises after you pay.</p>
       <CheckoutClient
         enabledMethods={enabled}
         regions={REGIONS}

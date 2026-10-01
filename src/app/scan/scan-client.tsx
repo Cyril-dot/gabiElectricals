@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '@/components/Icon';
 
 type Pay = { reference: string; amount: string; status: string; method: string; expiresAt: string | null; label: string };
 
@@ -36,7 +37,9 @@ export function ScanPayClient({ payment, demo }: { payment: Pay; demo: boolean }
   return (
     <div className="card p-6 sm:p-8 text-center">
       <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${done ? 'bg-success/15' : status === 'FAILED' || status === 'EXPIRED' ? 'bg-danger/10' : 'bg-blue/10'}`}>
-        <span className="text-3xl">{done ? '✅' : status === 'FAILED' ? '❌' : status === 'EXPIRED' ? '⌛' : '⚡'}</span>
+        <span className={done ? 'text-success' : status === 'FAILED' || status === 'EXPIRED' ? 'text-danger' : 'text-blue'}>
+          <Icon name={done ? 'check_circle' : status === 'FAILED' ? 'close' : status === 'EXPIRED' ? 'schedule' : 'bolt'} size={30} />
+        </span>
       </div>
       <h1 className="font-display font-extrabold text-2xl text-navy dark:text-white">{payment.amount}</h1>
       <p className="text-soft text-sm mt-1">to <b>GabiElectricals Ltd</b> · {payment.label}</p>
@@ -61,7 +64,7 @@ export function ScanPayClient({ payment, demo }: { payment: Pay; demo: boolean }
       )}
       {done && (
         <div className="mt-5 bg-success/10 rounded-xl p-4">
-          <p className="font-bold text-success">Payment confirmed ⚡</p>
+          <p className="font-bold text-success">Payment confirmed</p>
           <p className="text-sm text-soft mt-1">The merchant screen updates automatically. Receipt sent if an email was provided.</p>
         </div>
       )}

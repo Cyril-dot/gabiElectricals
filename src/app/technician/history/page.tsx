@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import { Badge } from '@/components/ops/ui';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,7 +42,7 @@ export default async function TechnicianHistory() {
           <div key={l} className="card p-3"><p className="font-display text-lg font-extrabold text-blue">{v}</p><p className="text-[9px] font-bold uppercase tracking-wide text-soft">{l}</p></div>
         ))}
       </div>
-      {done.length > 0 && <p className="px-1 text-xs text-soft">Average customer rating on your completed jobs: <span className="font-bold text-gold-dark dark:text-gold">★ {avg.toFixed(1)}</span> · commission estimate uses PAID payments per job ({commissionPct}% default, override via Setting key &quot;technician&quot;).</p>}
+      {done.length > 0 && <p className="px-1 text-xs text-soft">Average customer rating on your completed jobs: <span className="font-bold text-gold-dark dark:text-gold inline-flex items-center gap-0.5"><Icon name="star" size={12} className="inline text-gold" /> {avg.toFixed(1)}</span> · commission estimate uses PAID payments per job ({commissionPct}% default, override via Setting key &quot;technician&quot;).</p>}
       <div className="space-y-2">
         {jobs.map((j) => {
           const got = collected.get(j.id) ?? j.price;
@@ -53,7 +54,7 @@ export default async function TechnicianHistory() {
               </div>
               <p className="mt-1 text-xs text-soft">{new Date(j.date).toLocaleDateString('en-GH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} · {j.timeSlot} · {j.contactName}</p>
               {j.status !== 'CANCELLED' && (
-                <p className="mt-1 text-xs"><span className="font-bold text-blue">{ghs(got)}</span> collected · commission est. <span className="font-bold text-success">{ghs(got * commissionPct / 100)}</span>{j.rating ? <span className="ml-2 text-gold-dark dark:text-gold">★ {j.rating}/5 {j.review ? `“${j.review}”` : ''}</span> : <span className="ml-2 text-soft">no rating</span>}</p>
+                <p className="mt-1 text-xs"><span className="font-bold text-blue">{ghs(got)}</span> collected · commission est. <span className="font-bold text-success">{ghs(got * commissionPct / 100)}</span>{j.rating ? <span className="ml-2 inline-flex items-center gap-0.5 text-gold-dark dark:text-gold"><Icon name="star" size={12} className="inline text-gold" /> {j.rating}/5 {j.review ? `“${j.review}”` : ''}</span> : <span className="ml-2 text-soft">no rating</span>}</p>
               )}
             </div>
           );

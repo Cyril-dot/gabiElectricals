@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 
 export type Addr = { id: string; label: string; region: string; city: string; landmark: string | null; gps: string | null; phone: string; isDefault: boolean };
 
@@ -30,7 +31,7 @@ export default function AddressesManager({ initial }: { initial: Addr[] }) {
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { toast(j.error ?? 'Could not save address', 'err'); return; }
-      toast(isEdit ? 'Address updated ✓' : 'Address saved ✓', 'ok');
+      toast(isEdit ? 'Address updated' : 'Address saved', 'ok');
       setEditing(null); router.refresh();
     } catch { toast('Network error', 'err'); }
     finally { setBusy(false); }
@@ -52,7 +53,7 @@ export default function AddressesManager({ initial }: { initial: Addr[] }) {
     <div className="space-y-3">
       {initial.length === 0 && editing !== 'new' && (
         <div className="card p-10 text-center">
-          <p className="text-4xl" aria-hidden="true">📍</p>
+          <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="location_on" size={30} /></span>
           <p className="font-bold mt-2">No addresses saved</p>
           <p className="text-[13px] text-soft mt-1">Save your site or home address for one-tap checkout.</p>
         </div>
@@ -74,7 +75,7 @@ export default function AddressesManager({ initial }: { initial: Addr[] }) {
                 {a.label} {a.isDefault && <span className="text-[10px] font-black bg-blue/10 text-blue rounded-md px-1.5 py-0.5 ml-1">DEFAULT</span>}
               </p>
               <p className="text-[12.5px] text-soft mt-1">{a.city}, {a.region}{a.landmark ? ` · ${a.landmark}` : ''}</p>
-              <p className="text-[12px] text-soft mt-0.5">📞 {a.phone}{a.gps ? ` · GPS ${a.gps}` : ''}</p>
+              <p className="text-[12px] text-soft mt-0.5"><Icon name="call" size={12} className="inline" /> {a.phone}{a.gps ? ` · GPS ${a.gps}` : ''}</p>
             </div>
             <div className="flex gap-1.5 shrink-0">
               <button onClick={() => startEdit(a)} className="btn-ghost px-3 py-1.5 text-[12px]">Edit</button>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 import { PaySandbox } from './pay-client';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export default async function PayOrderPage({ params }: { params: Promise<{ order
         <p className="text-sm text-soft mb-5">Order {order.orderNo} · {ghs(order.total)} total{paidSoFar > 0 ? `, ${ghs(paidSoFar)} already paid` : ''}.</p>
         {closed ? (
           <div className="bg-success/10 border border-success/30 rounded-xl p-4 text-sm font-bold text-success">
-            ✓ This order is already {order.status.toLowerCase().replaceAll('_', ' ')} — nothing more to pay.
+            <p className="inline-flex items-center gap-1.5"><Icon name="check" size={16} />This order is already {order.status.toLowerCase().replaceAll('_', ' ')} — nothing more to pay.</p>
             <Link href={`/order/${order.orderNo}`} className="block text-blue mt-2 hover:underline">View order →</Link>
           </div>
         ) : (

@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { Badge, EmptyState, Msg, api, tableWrap, tdCls, thCls, useMsg } from '@/components/ops/ui';
+import { Icon } from '@/components/Icon';
 
 type Rev = { id: string; rating: number; title: string; body: string; verified: boolean; status: string; product: string; productSlug: string; customer: string; email: string; createdAt: string };
-const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+const Stars = ({n}:{n:number}) => (<span className="inline-flex">{Array.from({length:5},(_,i)=>(<Icon key={i} name="star" size={13} filled={i<Math.round(n)} className={i<Math.round(n)?'text-gold':'text-line'} />))}</span>);
 
 export function ReviewsBoard({ reviews, counts, summary, activeStatus }: { reviews: Rev[]; counts: Record<string, number>; summary: { name: string; slug: string; avg: number; n: number }[]; activeStatus: string }) {
   const [sel, setSel] = useState<Set<string>>(new Set());
@@ -49,7 +50,7 @@ export function ReviewsBoard({ reviews, counts, summary, activeStatus }: { revie
                 <tr key={r.id} className="border-b border-line/60 last:border-0 align-top">
                   <td className={tdCls}>{r.status === 'PENDING' && <input type="checkbox" className="h-4 w-4 accent-[#0C4A55]" checked={sel.has(r.id)} onChange={() => setSel((p) => { const n = new Set(p); if (n.has(r.id)) n.delete(r.id); else n.add(r.id); return n; })} />}</td>
                   <td className={tdCls}>
-                    <p className="text-sm font-bold text-gold-dark dark:text-gold">{stars(r.rating)} <span className="ml-1 text-ink dark:text-white">{r.title}</span></p>
+                    <p className="text-sm font-bold text-gold-dark dark:text-gold">{<Stars n={r.rating} />} <span className="ml-1 text-ink dark:text-white">{r.title}</span></p>
                     <p className="mt-0.5 max-w-md text-xs text-soft">{r.body}</p>
                     {r.verified && <Badge tone="success">verified purchase</Badge>}
                   </td>
@@ -71,7 +72,7 @@ export function ReviewsBoard({ reviews, counts, summary, activeStatus }: { revie
           {summary.map((s) => (
             <div key={s.slug} className="mb-2.5">
               <p className="truncate text-xs font-bold text-navy dark:text-white">{s.name}</p>
-              <p className="text-[11px] text-gold-dark dark:text-gold">{stars(s.avg)} <span className="text-soft">{s.avg.toFixed(1)} · {s.n} reviews</span></p>
+              <p className="text-[11px] text-gold-dark dark:text-gold">{<Stars n={s.avg} />} <span className="text-soft">{s.avg.toFixed(1)} · {s.n} reviews</span></p>
             </div>
           ))}
           {summary.length === 0 && <EmptyState text="No ratings yet." />}

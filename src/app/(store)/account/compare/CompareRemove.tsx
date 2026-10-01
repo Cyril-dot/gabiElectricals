@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 
 export default function CompareRemove({ slug, name }: { slug: string; name: string }) {
   const [busy, setBusy] = useState(false);
@@ -24,7 +25,7 @@ export default function CompareRemove({ slug, name }: { slug: string; name: stri
         finally { setBusy(false); }
       }}
       className="text-[11.5px] font-bold text-danger hover:underline">
-      {busy ? '…' : '✕ Remove'}
+      {busy ? '…' : <><Icon name="close" size={14} className="inline" /> Remove</>}
     </button>
   );
 }

@@ -6,6 +6,7 @@ import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
 import { ReferShare } from '@/components/ReferShare';
 import { AffiliateForm } from '@/components/AffiliateForm';
+import { Icon } from '@/components/Icon';
 
 export const metadata: Metadata = { title: 'Refer & Earn — ₵20 wallet credit per friend', description: 'Share your GabiElectricals link: friends save ₵20, you earn ₵20 wallet credit. Electricians & influencers can join the affiliate tier.' };
 
@@ -28,7 +29,7 @@ export default async function ReferPage() {
   return (
     <div className="container-x py-14">
       <div className="max-w-3xl mx-auto text-center mb-12">
-        <p className="text-gold font-black text-xs tracking-[0.3em] uppercase mb-3">⚡ Refer & Earn</p>
+        <p className="text-gold font-black text-xs tracking-[0.3em] uppercase mb-3 inline-flex items-center gap-1.5"><Icon name="bolt" size={15} className="text-gold" /> Refer &amp; Earn</p>
         <h1 className="font-display font-extrabold text-4xl md:text-5xl leading-tight mb-4">Give {ghs(ref.friendReward, { cents: false })}, get {ghs(ref.referrerReward, { cents: false })} — every single time.</h1>
         <p className="text-soft text-lg">Friends who order through your link save {ghs(ref.friendReward)} on checkout. You earn {ghs(ref.referrerReward)} wallet credit as soon as their order ships. Credit never expires and withdraws to MoMo.</p>
       </div>
@@ -83,9 +84,9 @@ export default async function ReferPage() {
           <h2 className="font-display font-extrabold text-2xl mb-2">Are you an electrician, contractor or content creator?</h2>
           <p className="text-white/75 text-sm leading-relaxed mb-4">Join the affiliate tier: custom commission on every delivered order you send our way (default {ref.affiliateDefaultPct}%, top partners negotiate higher), monthly MoMo payouts, and priority stock on flash deals.</p>
           <ul className="text-sm space-y-1.5 text-white/85">
-            <li>✓ Real-time conversion dashboard</li>
-            <li>✓ Co-branded QR + landing link</li>
-            <li>✓ No cap on earnings</li>
+            <li className="flex items-center gap-1.5"><Icon name="check" size={15} /> Real-time conversion dashboard</li>
+            <li className="flex items-center gap-1.5"><Icon name="check" size={15} /> Co-branded QR + landing link</li>
+            <li className="flex items-center gap-1.5"><Icon name="check" size={15} /> No cap on earnings</li>
           </ul>
         </div>
         <AffiliateForm loggedIn={!!user} />

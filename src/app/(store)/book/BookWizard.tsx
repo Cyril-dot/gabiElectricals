@@ -35,9 +35,9 @@ const REGIONS: Record<string, string[]> = {
   'Oti': ['Dambai', 'Jasikan'],
 };
 const URGS = [
-  { key: 'STANDARD', title: 'Standard', blurb: 'Next open appointment — best value', icon: '🗓️' },
-  { key: 'URGENT', title: 'Urgent', blurb: 'Priority routing, same/next day where possible', icon: '🕐' },
-  { key: 'EMERGENCY', title: 'Emergency', blurb: 'Top of the queue incl. nights — we roll fast', icon: '🚨' },
+  { key: 'STANDARD', title: 'Standard', blurb: 'Next open appointment — best value', icon: 'calendar_month' },
+  { key: 'URGENT', title: 'Urgent', blurb: 'Priority routing, same/next day where possible', icon: 'schedule' },
+  { key: 'EMERGENCY', title: 'Emergency', blurb: 'Top of the queue incl. nights — we roll fast', icon: 'siren' },
 ] as const;
 const PAY_MODES = [
   { key: 'DEPOSIT', title: 'Deposit (30%)', blurb: 'Lock the slot now, balance after the job' },
@@ -214,7 +214,7 @@ export default function BookWizard({ initialService, services, business }: { ini
                   i === step ? 'bg-navy text-white border-navy' :
                   i < step ? 'bg-success/10 text-success border-success/30' :
                   'bg-white text-soft border-line'}`}>
-                <span aria-hidden="true" className="mr-1">{i < step ? '✓' : i + 1}</span>{s}
+                <span aria-hidden="true" className="mr-1">{i < step ? <Icon name="check" size={12} className="inline" /> : i + 1}</span>{s}
               </button>
             </li>
           ))}
@@ -267,7 +267,7 @@ export default function BookWizard({ initialService, services, business }: { ini
               <>
                 {activeDates.length === 0 ? (
                   <div className="text-center py-10">
-                    <p className="text-3xl mb-2" aria-hidden="true">😔</p>
+                    <span aria-hidden="true" className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-2xl bg-mist dark:bg-navy-700 text-soft"><Icon name="event_busy" size={28} /></span>
                     <p className="font-bold">No open slots in the next 14 days</p>
                     <p className="text-[13px] text-soft mt-1">Need help sooner? Emergency call-out is 24/7.</p>
                     <div className="mt-4 flex justify-center gap-2 flex-wrap">
@@ -371,10 +371,10 @@ export default function BookWizard({ initialService, services, business }: { ini
                     {media.map(m => (
                       <li key={m} className="relative group">
                         {/\.(mp4|mov|webm)$/i.test(m)
-                          ? <span className="flex h-16 w-24 items-center justify-center rounded-lg bg-navy text-white text-[11px] font-bold">🎞 video</span>
+                          ? <span className="flex h-16 w-24 items-center justify-center gap-1 rounded-lg bg-navy text-white text-[11px] font-bold"><Icon name="videocam" size={16} /> video</span>
                           :   <img src={m} alt="Uploaded job photo" className="h-16 w-24 rounded-lg object-cover border border-line" />}
                         <button type="button" aria-label="Remove upload" onClick={() => setMedia(x => x.filter(p => p !== m))}
-                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-danger text-white text-[10px] font-black opacity-90">×</button>
+                          className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-danger text-white grid place-items-center opacity-90"><Icon name="close" size={11} /></button>
                       </li>
                     ))}
                   </ul>
@@ -394,7 +394,7 @@ export default function BookWizard({ initialService, services, business }: { ini
               {URGS.map(u => (
                 <label key={u.key} className={`card flex items-center gap-3 p-4 cursor-pointer transition-colors ${urgency === u.key ? 'border-blue ring-2 ring-blue/25' : 'hover:border-blue/50'}`}>
                   <input type="radio" name="urgency" value={u.key} checked={urgency === u.key} onChange={() => setUrgency(u.key)} className="accent-blue" />
-                  <span aria-hidden="true" className="text-2xl">{u.icon}</span>
+                  <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-mist dark:bg-navy-700 text-blue"><Icon name={u.icon} size={20} /></span>
                   <span className="flex-1 min-w-0">
                     <span className="block font-bold text-[14.5px]">{u.title}</span>
                     <span className="block text-[12.5px] text-soft">{u.blurb}</span>
@@ -508,7 +508,7 @@ export default function BookWizard({ initialService, services, business }: { ini
             ? <button type="button" onClick={() => { if (validateStep()) setStep(s => s + 1); }} className="btn-primary px-6 py-2.5 text-[14px] link-nudge">Continue <Icon name="arrow_forward" size={17} /></button>
             : <button type="button" onClick={onSubmit} disabled={submitting || !est}
                 className="btn-gold px-6 py-3 text-[15px] min-w-[180px]">
-                {submitting ? 'Creating booking…' : urgency === 'EMERGENCY' ? '🚨 Confirm emergency booking' : 'Confirm booking'}
+                {submitting ? 'Creating booking…' : urgency === 'EMERGENCY' ? <span className="inline-flex items-center gap-1.5"><Icon name="siren" size={17} /> Confirm emergency booking</span> : 'Confirm booking'}
               </button>}
         </div>
       </div>

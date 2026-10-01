@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 
 type OpenDay = { date: string; slots: { slot: string; remaining: number }[] };
 type Props = {
@@ -46,9 +47,9 @@ export default function BookingActions(p: Props) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { toast(j.error ?? 'Something went wrong', 'err'); return; }
       toast(
-        method === 'POST' && url.includes('reschedule') ? `Moved to ${fmt(newDate)} ${newSlot} ✓` :
-        url.includes('cancel') ? (j.flagged ? 'Booking cancelled — flagged for review (after dispatch)' : 'Booking cancelled — no charge ✓') :
-        'Thanks for rating your technician! ⭐',
+        method === 'POST' && url.includes('reschedule') ? `Moved to ${fmt(newDate)} ${newSlot}` :
+        url.includes('cancel') ? (j.flagged ? 'Booking cancelled — flagged for review (after dispatch)' : 'Booking cancelled — no charge') :
+        'Thanks for rating your technician!',
         'ok'
       );
       setTab('none'); setNewDate(''); setNewSlot(''); setCancelReason('');
@@ -66,8 +67,8 @@ export default function BookingActions(p: Props) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        {canReschedule && <button onClick={() => setTab(tab === 'reschedule' ? 'none' : 'reschedule')} className="btn-ghost px-4 py-2 text-[13px]" aria-expanded={tab === 'reschedule'}>📅 Reschedule ({3 - p.rescheduleCount} left)</button>}
-        {canCancel && <button onClick={() => setTab(tab === 'cancel' ? 'none' : 'cancel')} className="btn-ghost px-4 py-2 text-[13px] text-danger border-danger/30" aria-expanded={tab === 'cancel'}>✖ Cancel booking</button>}
+        {canReschedule && <button onClick={() => setTab(tab === 'reschedule' ? 'none' : 'reschedule')} className="btn-ghost px-4 py-2 text-[13px]" aria-expanded={tab === 'reschedule'}><span className="inline-flex items-center gap-1.5"><Icon name="calendar_month" size={16} /> Reschedule ({3 - p.rescheduleCount} left)</span></button>}
+        {canCancel && <button onClick={() => setTab(tab === 'cancel' ? 'none' : 'cancel')} className="btn-ghost px-4 py-2 text-[13px] text-danger border-danger/30" aria-expanded={tab === 'cancel'}><span className="inline-flex items-center gap-1.5"><Icon name="close" size={16} /> Cancel booking</span></button>}
         {p.status === 'COMPLETED' && !canReview && <span className="text-[12px] text-soft self-center">Review closes once the team follows up.</span>}
       </div>
 
@@ -108,7 +109,7 @@ export default function BookingActions(p: Props) {
           <p className="text-[12px] text-soft mb-3">
             {['REQUESTED', 'CONFIRMED'].includes(p.status)
               ? 'Free cancellation — no technician assigned yet. Any deposit transfers to a future booking.'
-              : '⚠️ A technician has already been dispatched — cancelling now is flagged and a call-out fee may apply.'}
+              : <span className="inline-flex items-start gap-1.5"><Icon name="warning" size={16} className="mt-0.5 shrink-0 text-danger" /> A technician has already been dispatched — cancelling now is flagged and a call-out fee may apply.</span>}
           </p>
           <label htmlFor="cancel-reason" className="block text-[12px] font-bold mb-1">Reason (helps us improve)</label>
           <textarea id="cancel-reason" rows={2} value={cancelReason} onChange={e => setCancelReason(e.target.value)}
@@ -124,14 +125,14 @@ export default function BookingActions(p: Props) {
       {/* Review panel */}
       {canReview && (
         <div className="mt-4 rounded-xl border border-gold/40 bg-gold/5 p-4">
-          <h3 className="font-bold text-[14px]">Rate your service ⭐</h3>
+          <h3 className="font-bold text-[14px] inline-flex items-center gap-1.5">Rate your service <Icon name="star" size={16} className="text-gold" /></h3>
           <p className="text-[12px] text-soft mb-2">How did your technician do? It takes 15 seconds and keeps our standard high.</p>
           <div className="flex gap-1" role="radiogroup" aria-label="Rating from 1 to 5 stars">
             {[1, 2, 3, 4, 5].map(n => (
               <button key={n} role="radio" aria-checked={stars === n} aria-label={`${n} star${n > 1 ? 's' : ''}`}
                 onMouseEnter={() => setHover(n)} onMouseLeave={() => setHover(0)}
                 onClick={() => setStars(n)}
-                className={`text-2xl transition-transform hover:scale-110 ${(hover || stars) >= n ? 'grayscale-0' : 'opacity-30 grayscale'}`}>⭐</button>
+                className="transition-transform hover:scale-110"><Icon name="star" size={24} filled={(hover || stars) >= n} className={(hover || stars) >= n ? 'text-gold' : 'text-line opacity-40'} /></button>
             ))}
           </div>
           <label htmlFor="rvw" className="block text-[12px] font-bold mt-2 mb-1">Comments</label>
@@ -145,7 +146,7 @@ export default function BookingActions(p: Props) {
 
       {p.status === 'REVIEWED' && (
         <div className="mt-3 rounded-xl bg-success/10 border border-success/30 p-3 text-[13px] text-success font-bold">
-          ✓ You rated this job {p.rating}★{p.review ? ` — “${p.review.slice(0, 80)}”` : ''}. Thank you!
+          <span className="inline-flex items-center gap-1"><Icon name="check" size={14} /> You rated this job {p.rating}</span><Icon name="star" size={14} className="text-gold" />{p.review ? ` — “${p.review.slice(0, 80)}”` : ''}. Thank you!
         </div>
       )}
     </section>

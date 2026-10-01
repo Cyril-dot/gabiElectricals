@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import { PaymentFlow } from './payment-flow';
 import { Logo } from '@/components/Logo';
+import { Icon } from '@/components/Icon';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +30,7 @@ export default async function PayLinkPage({ params }: { params: Promise<{ code: 
         <div className="mx-auto w-full max-w-lg px-4">
           {!link ? (
             <div className="card p-8 text-center">
-              <div className="text-4xl mb-3">🔗</div>
+              <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt"><Icon name="link" size={32} /></span>
               <h1 className="font-display font-extrabold text-xl text-navy dark:text-white mb-1">Link not found</h1>
               <p className="text-soft text-sm mb-5">This payment link is invalid or was removed. Ask your GabiElectricals agent for a fresh link.</p>
               <Link href="/shop" className="btn-primary">Back to shop</Link>

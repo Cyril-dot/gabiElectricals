@@ -1,15 +1,16 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Icon, type IconName } from '@/components/Icon';
 
 export type AccountNavItem = { href: string; label: string; icon: string; exact?: boolean };
 
 export default function AccountNav({ items, role }: { items: AccountNavItem[]; role: string }) {
   const pathname = usePathname();
   const extra: AccountNavItem[] = role === 'TECHNICIAN'
-    ? [{ href: '/technician', label: 'Technician Desk', icon: '🔧' }]
+    ? [{ href: '/technician', label: 'Technician Desk', icon: 'build' }]
     : role === 'ADMIN' || role === 'SUPER_ADMIN'
-      ? [{ href: '/admin', label: 'Admin Console', icon: '🛠️' }]
+      ? [{ href: '/admin', label: 'Admin Console', icon: 'handyman' }]
       : [];
   const all = [...items, ...extra];
   return (
@@ -22,7 +23,7 @@ export default function AccountNav({ items, role }: { items: AccountNavItem[]; r
               <Link href={l.href} aria-current={active ? 'page' : undefined}
                 className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13.5px] font-bold transition-colors whitespace-nowrap ${
                   active ? 'bg-navy text-white' : 'text-ink dark:text-white hover:bg-mist dark:hover:bg-navy-700'}`}>
-                <span aria-hidden="true">{l.icon}</span>{l.label}
+                <span aria-hidden="true"><Icon name={l.icon as IconName} size={18} /></span>{l.label}
               </Link>
             </li>
           );

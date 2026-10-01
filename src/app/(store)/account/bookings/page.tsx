@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +29,7 @@ export default async function AccountBookings() {
       </div>
       {bookings.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="text-4xl" aria-hidden="true">🗓️</p>
+          <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="calendar_month" size={30} /></span>
           <p className="font-bold mt-2">No bookings yet</p>
           <p className="text-[13px] text-soft mt-1">Certified electricians, from ₵250 — fault finding, wiring, solar and more.</p>
           <Link href="/services" className="btn-primary mt-4 px-5 py-2.5 text-[13.5px] inline-flex">Browse services</Link>
@@ -50,10 +51,10 @@ export default async function AccountBookings() {
                 <div className="mt-3 pt-2.5 border-t border-line flex flex-wrap items-center justify-between gap-2">
                   <span className="text-[12px] text-soft">
                     {b.paymentMode === 'QUOTE' ? 'Quote requested' : b.paymentMode === 'AFTER' ? 'Pay after service' : `Total ${ghs(b.price)} · deposit ${ghs(b.depositDue)}`}
-                    {b.rating ? ` · you rated ${b.rating}★` : ''}
+                    {b.rating ? (<> · you rated {b.rating} <Icon name="star" size={13} className="inline" /></>) : ''}
                   </span>
                   <span className="flex gap-2">
-                    {b.status === 'COMPLETED' && <Link href={`/booking/${b.bookingNo}`} className="btn-gold px-3 py-1.5 text-[12px]">Rate job ⭐</Link>}
+                    {b.status === 'COMPLETED' && <Link href={`/booking/${b.bookingNo}`} className="btn-gold px-3 py-1.5 text-[12px]">Rate job <Icon name="star" size={13} className="inline" /></Link>}
                     {canManage && <Link href={`/booking/${b.bookingNo}`} className="btn-ghost px-3 py-1.5 text-[12px]">Reschedule / cancel</Link>}
                     <Link href={`/booking/${b.bookingNo}`} className="btn-primary px-3 py-1.5 text-[12px]">{active ? 'Track →' : 'Details →'}</Link>
                   </span>

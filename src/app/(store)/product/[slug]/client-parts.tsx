@@ -124,7 +124,7 @@ export function ShareButtons({ name, slug }: { name: string; slug: string }) {
       <button type="button" onClick={async () => {
         try { await navigator.clipboard.writeText(url); toast('Link copied — share it and earn when they buy!'); }
         catch { toast('Copy failed — long-press the address bar.', 'err'); }
-      }} className="btn-ghost !py-3 text-sm min-h-[44px] flex-1 justify-center">🔗 Copy link</button>
+      }} className="btn-ghost !py-3 text-sm min-h-[44px] flex-1 justify-center inline-flex items-center gap-1.5"><Icon name="link" size={15} />Copy link</button>
       <a href={`https://wa.me/?text=${encodeURIComponent(`Check this out from GabiElectricals: ${name} ${url}`)}`} target="_blank" rel="noopener noreferrer"
         className="btn-ghost !py-3 text-sm min-h-[44px] flex-1 justify-center">↗ Share</a>
     </div>
@@ -138,7 +138,7 @@ export function NotifyMe({ slug, name }: { slug: string; name: string }) {
   const [err, setErr] = useState('');
   return (
     <div className="card p-4 border-warning/40 bg-warning/5">
-      <p className="font-bold text-warning mb-1">😴 Out of stock — we restock weekly</p>
+      <p className="font-bold text-warning mb-1 inline-flex items-center gap-1.5"><Icon name="autorenew" size={16} />Out of stock — we restock weekly</p>
       <p className="text-sm text-soft mb-3">Leave your email and we will alert you the moment {name.split('—')[0].trim()} lands.</p>
       {done ? (
         <p className="text-sm font-bold text-success inline-flex items-center gap-1.5"><Icon name="check_circle" size={16} /> You are on the list — we will notify you first.</p>
@@ -174,7 +174,7 @@ export function ReviewForm({ slug, signedIn }: { slug: string; signedIn: boolean
   if (!signedIn) {
     return (
       <div className="card p-5 text-center">
-        <p className="text-sm text-soft mb-3 font-medium">Sign in to review this product — verified purchases get a ✓ badge.</p>
+        <p className="text-sm text-soft mb-3 font-medium inline-flex items-center gap-1">Sign in to review this product — verified purchases get a <Icon name="check" size={14} /> badge.</p>
         <Link href="/login" className="btn-primary !px-5 !py-2.5 text-sm">Sign in to review</Link>
       </div>
     );
@@ -187,7 +187,7 @@ export function ReviewForm({ slug, signedIn }: { slug: string; signedIn: boolean
       setBusy(false);
       const j = await res.json().catch(() => ({}));
       if (!res.ok) { setErr(j.error ?? 'Could not save review.'); if (res.status === 401) router.push('/login'); return; }
-      toast(j.verified ? 'Review posted — marked Verified purchase ✓' : 'Review posted — thank you!');
+      toast(j.verified ? 'Review posted — marked Verified purchase' : 'Review posted — thank you!');
       router.refresh();
       setTitle(''); setBody('');
     }}>
@@ -195,7 +195,9 @@ export function ReviewForm({ slug, signedIn }: { slug: string; signedIn: boolean
         <span className="text-sm font-bold">Your rating</span>
         {[1, 2, 3, 4, 5].map(n => (
           <button key={n} type="button" role="radio" aria-checked={rating === n} aria-label={`${n} star${n > 1 ? 's' : ''}`} onClick={() => setRating(n)}
-            className={`text-2xl leading-none min-w-[36px] min-h-[36px] transition-transform ${n <= rating ? 'text-gold scale-110' : 'text-line'}`}>★</button>
+            className={`leading-none min-w-[36px] min-h-[36px] grid place-items-center transition-transform ${n <= rating ? 'scale-110' : ''}`}>
+            <Icon name="star" size={28} filled={n <= rating} className={n <= rating ? 'text-gold' : 'text-line'} />
+          </button>
         ))}
       </div>
       <div>

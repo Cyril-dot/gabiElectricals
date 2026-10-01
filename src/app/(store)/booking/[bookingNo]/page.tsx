@@ -8,6 +8,7 @@ import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import BookingActions from './BookingActions';
 import PayPanel from './PayPanel';
+import { Icon, type IconName } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,15 +22,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const CHAIN = ['REQUESTED', 'CONFIRMED', 'ASSIGNED', 'ON_THE_WAY', 'IN_PROGRESS', 'COMPLETED', 'REVIEWED'] as const;
-const STEP_META: Record<string, { label: string; icon: string; blurb: string }> = {
-  REQUESTED: { label: 'Requested', icon: '📝', blurb: 'Booking received — awaiting deposit/confirmation' },
-  CONFIRMED: { label: 'Confirmed', icon: '✅', blurb: 'Slot locked in. You will get an SMS when a tech is assigned' },
-  ASSIGNED: { label: 'Technician assigned', icon: '👷', blurb: 'Your certified electrician is scheduled — name & photo by SMS' },
-  ON_THE_WAY: { label: 'On the way', icon: '🚐', blurb: 'Technician en route with tools and genuine parts' },
-  IN_PROGRESS: { label: 'In progress', icon: '⚡', blurb: 'Work underway — tested before we close up' },
-  COMPLETED: { label: 'Completed', icon: '🏁', blurb: 'Job done, warranty active. Rate your technician!' },
-  REVIEWED: { label: 'Reviewed', icon: '⭐', blurb: 'Thanks for the review — it helps other customers' },
-  CANCELLED: { label: 'Cancelled', icon: '✖️', blurb: 'This booking was cancelled' },
+const STEP_META: Record<string, { label: string; icon: IconName; blurb: string }> = {
+  REQUESTED: { label: 'Requested', icon: 'edit', blurb: 'Booking received — awaiting deposit/confirmation' },
+  CONFIRMED: { label: 'Confirmed', icon: 'check_circle', blurb: 'Slot locked in. You will get an SMS when a tech is assigned' },
+  ASSIGNED: { label: 'Technician assigned', icon: 'engineering', blurb: 'Your certified electrician is scheduled — name & photo by SMS' },
+  ON_THE_WAY: { label: 'On the way', icon: 'local_shipping', blurb: 'Technician en route with tools and genuine parts' },
+  IN_PROGRESS: { label: 'In progress', icon: 'bolt', blurb: 'Work underway — tested before we close up' },
+  COMPLETED: { label: 'Completed', icon: 'flag', blurb: 'Job done, warranty active. Rate your technician!' },
+  REVIEWED: { label: 'Reviewed', icon: 'star', blurb: 'Thanks for the review — it helps other customers' },
+  CANCELLED: { label: 'Cancelled', icon: 'close', blurb: 'This booking was cancelled' },
 };
 
 export default async function BookingPage({ params, searchParams }: Props) {
@@ -83,8 +84,8 @@ export default async function BookingPage({ params, searchParams }: Props) {
               {booking.service.name} · {dayName}, {new Date(booking.date).toLocaleDateString('en-GH', { day: 'numeric', month: 'long', year: 'numeric' })} · {booking.timeSlot}
             </p>
             <div className="mt-4 flex flex-wrap gap-3 text-[12px] font-bold">
-              <a href={icsHref} className="rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition-colors">📅 Add to calendar (.ics)</a>
-              <span className="rounded-lg bg-white/10 px-3 py-1.5">{booking.urgency === 'STANDARD' ? 'Standard scheduling' : booking.urgency === 'URGENT' ? '🕐 Urgent' : '🚨 Emergency'}</span>
+              <a href={icsHref} className="rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 transition-colors inline-flex items-center gap-1.5"><Icon name="calendar_month" size={15} /> Add to calendar (.ics)</a>
+              <span className="rounded-lg bg-white/10 px-3 py-1.5 inline-flex items-center gap-1.5">{booking.urgency === 'STANDARD' ? 'Standard scheduling' : booking.urgency === 'URGENT' ? <><Icon name="schedule" size={15} /> Urgent</> : <><Icon name="siren" size={15} /> Emergency</>}</span>
               <span className="rounded-lg bg-white/10 px-3 py-1.5">Pay mode: {booking.paymentMode}</span>
             </div>
           </div>
@@ -106,7 +107,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
                         className={`z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[15px] border-2 ${
                           current ? 'bg-success border-success text-white ring-4 ring-success/20' :
                           reached ? 'bg-success/15 border-success' : 'bg-white border-line opacity-50'}`}>
-                        {reached && !current ? '✓' : meta.icon}
+                        {reached && !current ? <Icon name="check" size={15} /> : <Icon name={meta.icon} size={17} />}
                       </span>
                       <span className="min-w-0 pt-1">
                         <span className={`block text-[13.5px] font-bold ${current ? 'text-success' : reached ? '' : 'text-soft'}`}>
@@ -124,7 +125,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
                 })}
                 {booking.status === 'CANCELLED' && (
                   <li className="flex gap-3">
-                    <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/15 border-2 border-danger text-danger text-[13px] font-black">✖</span>
+                    <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/15 border-2 border-danger text-danger text-[13px] font-black"><Icon name="close" size={14} /></span>
                     <span className="pt-1">
                       <span className="block text-[13.5px] font-bold text-danger">Cancelled</span>
                       <span className="block text-[12px] text-soft mt-0.5">{booking.cancelReason ?? 'No reason recorded'}</span>
@@ -144,8 +145,8 @@ export default async function BookingPage({ params, searchParams }: Props) {
               {booking.technician && (
                 <div className="card p-4">
                   <p className="text-[11px] font-black uppercase tracking-wide text-soft">Your technician</p>
-                  <p className="font-bold text-[14px] mt-1">👷 {booking.technician.user.name}</p>
-                  <p className="text-[12px] text-soft mt-0.5">Rated {booking.technician.rating.toFixed(1)}★ · {booking.technician.jobsCompleted} jobs done</p>
+                  <p className="font-bold text-[14px] mt-1 inline-flex items-center gap-1.5"><Icon name="engineering" size={16} className="text-blue" /> {booking.technician.user.name}</p>
+                  <p className="text-[12px] text-soft mt-0.5 inline-flex items-center gap-1">Rated {booking.technician.rating.toFixed(1)}<Icon name="star" size={12} className="text-gold" /> · {booking.technician.jobsCompleted} jobs done</p>
                 </div>
               )}
               <div className="card p-4 text-[12.5px] space-y-1.5">
@@ -157,7 +158,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
                     <p className="font-black uppercase text-[11px] tracking-wide text-soft mb-1.5">Media</p>
                     <div className="flex flex-wrap gap-1.5">
                       {media.map(m => (/\.(mp4|mov|webm)$/i.test(m)
-                        ? <a key={m} href={m} className="h-12 w-16 rounded-lg bg-navy text-white flex items-center justify-center text-[10px] font-bold" target="_blank" rel="noreferrer">🎞</a>
+                        ? <a key={m} href={m} className="h-12 w-16 rounded-lg bg-navy text-white flex items-center justify-center" aria-label="Open booking video attachment" target="_blank" rel="noreferrer"><Icon name="videocam" size={16} /></a>
                         :   <a key={m} href={m} target="_blank" rel="noreferrer"><img src={m} alt="Booking attachment" className="h-12 w-16 rounded-lg object-cover border border-line" /></a>))}
                     </div>
                   </div>
@@ -213,7 +214,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
           <Link href="/services" className="btn-ghost px-4 py-2.5">Book another service</Link>
           <Link href="/account/bookings" className="btn-ghost px-4 py-2.5">My bookings →</Link>
           <a href={`https://wa.me/${settings.business.whatsapp.replace(/[^\d]/g, '')}?text=${encodeURIComponent(`Hi about booking ${booking.bookingNo}:`)}`}
-            target="_blank" rel="noreferrer" className="btn-primary px-4 py-2.5">💬 Chat with us</a>
+            target="_blank" rel="noreferrer" className="btn-primary px-4 py-2.5 inline-flex items-center gap-1.5"><Icon name="chat" size={16} /> Chat with us</a>
         </div>
       </div>
     </div>

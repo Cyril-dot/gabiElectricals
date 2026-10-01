@@ -26,7 +26,7 @@ export default async function DealsPage() {
         <p className="text-soft">Time-limited pricing on genuine stock. When the timer ends, the price returns — because real copper and certified protection are never actually cheap.</p>
       </div>
 
-      {deals.length === 0 && <div className="card p-10 text-center mb-10"><p className="text-4xl mb-2">⏳</p><p className="font-bold">No live flash sale right now — check back, they run 48-hour windows.</p><Link href="/shop" className="btn-primary !px-5 !py-2.5 mt-4">Browse the catalog</Link></div>}
+      {deals.length === 0 && <div className="card p-10 text-center mb-10"><span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="schedule" size={30} /></span><p className="font-bold">No live flash sale right now — check back, they run 48-hour windows.</p><Link href="/shop" className="btn-primary !px-5 !py-2.5 mt-4">Browse the catalog</Link></div>}
       {deals.length > 0 && (
         <section className="mb-12" aria-labelledby="flash-h">
           <div className="flex items-end justify-between mb-5">

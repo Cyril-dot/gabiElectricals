@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useToast } from './Toast';
+import { Icon } from './Icon';
 
 export function ReferShare({ link }: { link: string }) {
   const toast = useToast();
@@ -16,7 +17,7 @@ export function ReferShare({ link }: { link: string }) {
       <div className="flex flex-col sm:flex-row gap-2">
         <input readOnly value={link} aria-label="Your referral link" onFocus={e => e.currentTarget.select()}
           className="flex-1 font-mono text-sm font-bold bg-mist dark:bg-navy-700 border border-line rounded-xl px-4 py-3" />
-        <button onClick={copy} className="btn-primary !px-5 !py-3">{copied ? 'Copied ✓' : 'Copy link'}</button>
+        <button onClick={copy} className="btn-primary !px-5 !py-3">{copied ? <>Copied <Icon name="check" size={14} className="inline" /></> : 'Copy link'}</button>
       </div>
       <div className="flex gap-2 mt-3 flex-wrap">
         <a href={wa} target="_blank" rel="noreferrer" className="btn !px-4 !py-2.5 text-sm bg-[#25D366] text-white">Share on WhatsApp</a>

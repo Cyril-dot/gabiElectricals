@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { JobCard } from './job-card';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,7 @@ export default async function TechnicianHome() {
         <p className="text-xs font-bold uppercase tracking-widest text-gold">Field technician</p>
         <div className="mt-1 flex items-center justify-between">
           <h1 className="font-display text-xl font-extrabold">{s.name}</h1>
-          <span className="rounded-full bg-gold px-3 py-1 text-sm font-extrabold text-navy">★ {(rated._avg.rating ?? tech.rating).toFixed(1)}</span>
+          <span className="rounded-full bg-gold px-3 py-1 text-sm font-extrabold text-navy inline-flex items-center gap-1"><Icon name="star" size={14} /> {(rated._avg.rating ?? tech.rating).toFixed(1)}</span>
         </div>
       </header>
 

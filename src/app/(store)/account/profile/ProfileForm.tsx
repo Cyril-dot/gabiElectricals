@@ -26,7 +26,7 @@ export default function ProfileForm({ initial }: Props) {
       const r = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: f.name.trim(), email: f.email.trim(), phone: f.phone.trim() || undefined }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { toast(j.error ?? 'Could not save', 'err'); return; }
-      toast('Profile updated ✓', 'ok'); router.refresh();
+      toast('Profile updated', 'ok'); router.refresh();
     } catch { toast('Network error', 'err'); } finally { setBusyA(false); }
   }
 
@@ -40,7 +40,7 @@ export default function ProfileForm({ initial }: Props) {
       const r = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ oldPassword: pw.old, newPassword: pw.next }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { toast(j.error ?? 'Could not change password', 'err'); return; }
-      toast('Password changed 🔒', 'ok');
+      toast('Password changed', 'ok');
       setPw({ old: '', next: '', confirm: '' });
     } catch { toast('Network error', 'err'); } finally { setBusyB(false); }
   }

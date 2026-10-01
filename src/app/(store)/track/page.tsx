@@ -5,6 +5,7 @@ import { OrderTimeline, type TimelineEvent } from '@/components/OrderTimeline';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 
 type Lookup = {
   orderNo: string; status: string; total: number; createdAt: string;
@@ -72,7 +73,7 @@ function TrackInner() {
             </ul>
           </div>
           {(data.status === 'PENDING_PAYMENT' || data.status === 'PARTIALLY_PAID') && (
-            <Link href={`/order/${data.orderNo}/pay`} className="btn-primary w-full !py-3">💰 Pay now</Link>
+            <Link href={`/order/${data.orderNo}/pay`} className="btn-primary w-full !py-3 inline-flex items-center justify-center gap-1.5"><Icon name="payments" size={16} /> Pay now</Link>
           )}
         </div>
       )}

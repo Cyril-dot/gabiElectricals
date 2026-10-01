@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useToast } from './Toast';
+import { Icon } from './Icon';
 
 type ActivePopup = {
   id: string; kind: string; headline: string; body: string; buttonLabel: string; buttonHref?: string | null;
@@ -80,9 +81,9 @@ export function PopupHost() {
     <div className="fixed inset-0 z-[85] grid place-items-end sm:place-items-center sm:p-4" role="dialog" aria-modal="true" aria-label={popup.headline}>
       <button aria-label="Close popup" className="absolute inset-0 bg-navy/70 backdrop-blur-sm" onClick={() => setPopup(null)} />
       <div className="relative w-full sm:w-auto sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-pop overflow-hidden" style={{ background: popup.bgColor, color: popup.textColor }}>
-        <button onClick={() => setPopup(null)} aria-label="Dismiss" className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/25 text-white font-black hover:bg-black/40">✕</button>
+        <button onClick={() => setPopup(null)} aria-label="Dismiss" className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/25 text-white font-black hover:bg-black/40 grid place-items-center"><Icon name="close" size={16} /></button>
         <div className="p-7">
-          <span className="inline-block text-[11px] font-black tracking-[0.25em] uppercase px-2.5 py-1 rounded-full mb-4" style={{ background: popup.accentColor, color: popup.bgColor }}>⚡ Limited offer</span>
+          <span className="inline-block text-[11px] font-black tracking-[0.25em] uppercase px-2.5 py-1 rounded-full mb-4" style={{ background: popup.accentColor, color: popup.bgColor }}><Icon name="bolt" size={13} className="inline align-middle" /> Limited offer</span>
           <h3 className="font-display font-extrabold text-2xl leading-tight mb-2">{popup.headline}</h3>
           <p className="text-sm opacity-90 leading-relaxed mb-5">{popup.body}</p>
           {popup.captureLead && (

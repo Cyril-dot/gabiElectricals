@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 
 type LinkInfo = {
   code: string; label: string; description: string | null; amount: number; flexible: boolean;
@@ -12,13 +13,13 @@ type Init = {
 };
 
 const METHODS = [
-  { id: 'MOMO_MTN', name: 'MTN MoMo', icon: '🟡', hint: 'Prompt sent to your phone' },
-  { id: 'MOMO_TELECEL', name: 'Telecel Cash', icon: '🔴', hint: 'Prompt sent to your phone' },
-  { id: 'MOMO_AT', name: 'AT Money', icon: '🟢', hint: 'Prompt sent to your phone' },
-  { id: 'CARD', name: 'Visa / Mastercard', icon: '💳', hint: 'Sandbox hosted card' },
-  { id: 'QR', name: 'Scan & Pay (QR)', icon: '🔳', hint: 'QR expires in 15 min' },
-  { id: 'BANK_TRANSFER', name: 'Bank transfer / GhIPSS', icon: '🏦', hint: 'Instant bank rails' },
-  { id: 'MANUAL_TRANSFER', name: 'Manual transfer + proof', icon: '🧾', hint: 'Approved by our team' },
+  { id: 'MOMO_MTN', name: 'MTN MoMo', kind: 'dot' as const, color: '#FFCC00', hint: 'Prompt sent to your phone' },
+  { id: 'MOMO_TELECEL', name: 'Telecel Cash', kind: 'dot' as const, color: '#E4002B', hint: 'Prompt sent to your phone' },
+  { id: 'MOMO_AT', name: 'AT Money', kind: 'dot' as const, color: '#00A651', hint: 'Prompt sent to your phone' },
+  { id: 'CARD', name: 'Visa / Mastercard', kind: 'icon' as const, icon: 'credit_card', hint: 'Sandbox hosted card' },
+  { id: 'QR', name: 'Scan & Pay (QR)', kind: 'icon' as const, icon: 'qr_code', hint: 'QR expires in 15 min' },
+  { id: 'BANK_TRANSFER', name: 'Bank transfer / GhIPSS', kind: 'icon' as const, icon: 'account_balance', hint: 'Instant bank rails' },
+  { id: 'MANUAL_TRANSFER', name: 'Manual transfer + proof', kind: 'icon' as const, icon: 'receipt_long', hint: 'Approved by our team' },
 ] as const;
 
 export function PaymentFlow({ link }: { link: LinkInfo }) {
@@ -115,7 +116,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
   if (link.status !== 'ACTIVE') {
     return (
       <div className="card p-8 text-center">
-        <div className="text-4xl mb-3">⛔</div>
+        <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-danger/10 text-danger"><Icon name="block" size={32} /></span>
         <h1 className="font-display font-extrabold text-xl text-navy dark:text-white mb-1">Link {link.status.toLowerCase()}</h1>
         <p className="text-soft text-sm">This payment link is {link.status === 'PAID' ? 'already paid in full' : 'no longer active'}. {link.label}</p>
       </div>
@@ -127,7 +128,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
         <div className="w-16 h-16 mx-auto rounded-full bg-success/15 flex items-center justify-center mb-4">
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" className="text-success"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
-        <h1 className="font-display font-extrabold text-2xl text-navy dark:text-white">Payment received ⚡</h1>
+        <h1 className="font-display font-extrabold text-2xl text-navy dark:text-white inline-flex items-center gap-2 justify-center">Payment received <Icon name="bolt" size={22} /></h1>
         <p className="text-soft mt-1 mb-4">{ghs(init?.amount ?? shown)} · {link.label}</p>
         <dl className="text-sm bg-mist dark:bg-white/5 rounded-xl p-4 text-left space-y-2 mb-5">
           <div className="flex justify-between"><dt className="text-soft">Reference</dt><dd className="font-mono font-bold text-navy dark:text-white">{init?.reference}</dd></div>
@@ -141,7 +142,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
   if (step === 'awaiting') {
     return (
       <div className="card p-8 text-center">
-        <div className="text-4xl mb-3">🧾</div>
+        <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt"><Icon name="receipt_long" size={32} /></span>
         <h1 className="font-display font-extrabold text-xl text-navy dark:text-white">Proof submitted — awaiting approval</h1>
         <p className="text-soft text-sm mt-2 mb-4">Our team will verify the transfer against reference <span className="font-mono font-bold">{init?.reference}</span> and confirm shortly (usually under 30 minutes, 8am–8pm).</p>
         <p className="text-xs text-soft">Transfer to: <b>GabiElectricals Ltd · GCB Bank · Accra Main · Acc. 1020304050</b> — put the reference in the note.</p>
@@ -167,7 +168,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
         )}
         {!isQr && (
           <div className="bg-mist dark:bg-white/5 rounded-xl p-4 mb-5 text-center">
-            <div className="animate-pulse text-3xl mb-2">{method.startsWith('MOMO') ? '📲' : method === 'CARD' ? '💳' : '🏦'}</div>
+            <div className="animate-pulse mb-2 flex justify-center text-soft"><Icon name={method.startsWith('MOMO') ? 'smartphone' : method === 'CARD' ? 'credit_card' : 'account_balance'} size={30} /></div>
             <p className="text-sm font-semibold text-navy dark:text-white">{init.prompt ?? 'Complete the prompt to finish payment.'}</p>
           </div>
         )}
@@ -191,7 +192,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
   if (step === 'failed') {
     return (
       <div className="card p-8 text-center">
-        <div className="text-4xl mb-3">❌</div>
+        <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-danger/10 text-danger"><Icon name="close" size={32} /></span>
         <h1 className="font-display font-extrabold text-xl text-navy dark:text-white mb-1">Payment did not go through</h1>
         <p className="text-soft text-sm mb-5">{error || 'You declined the prompt or the network timed out. No money was moved — try again.'}</p>
         <button onClick={() => { setError(''); setStep('choose'); }} className="btn-primary">Try another method</button>
@@ -220,7 +221,11 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
               {METHODS.map(m => (
                 <button key={m.id} onClick={() => { setMethod(m.id); setStep('details'); }}
                   className="flex items-center gap-3 rounded-xl border border-line dark:border-white/10 p-3.5 text-left hover:border-blue transition-colors">
-                  <span className="text-xl w-8 text-center">{m.icon}</span>
+                  {m.kind === 'dot' ? (
+                    <span className="h-8 w-8 shrink-0 rounded-full border border-line" style={{ background: m.color }} aria-hidden="true" />
+                  ) : (
+                    <span className="w-8 grid place-items-center text-soft" aria-hidden="true"><Icon name={m.icon} size={22} /></span>
+                  )}
                   <span className="flex-1">
                     <span className="block font-bold text-navy dark:text-white text-sm">{m.name}</span>
                     <span className="block text-xs text-soft">{m.hint}</span>
@@ -276,7 +281,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
             </div>
           </>
         )}
-        <p className="text-[11px] text-soft mt-4">🔒 No card data is stored. Secured with 256-bit encryption. VAT invoice issued automatically.</p>
+        <p className="text-[11px] text-soft mt-4 inline-flex items-center gap-1"><Icon name="lock" size={12} />No card data is stored. Secured with 256-bit encryption. VAT invoice issued automatically.</p>
       </div>
     </div>
   );

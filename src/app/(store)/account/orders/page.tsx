@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export default async function AccountOrders() {
       <h2 className="font-display font-extrabold text-xl">Orders <span className="text-soft font-semibold text-[14px]">({orders.length})</span></h2>
       {orders.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="text-4xl" aria-hidden="true">🧾</p>
+          <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="receipt_long" size={30} /></span>
           <p className="font-bold mt-2">No orders yet</p>
           <p className="text-[13px] text-soft mt-1">Your purchases of genuine cables, breakers and solar will appear here.</p>
           <Link href="/shop" className="btn-primary mt-4 px-5 py-2.5 text-[13.5px] inline-flex">Start shopping</Link>

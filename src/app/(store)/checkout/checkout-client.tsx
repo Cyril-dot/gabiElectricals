@@ -6,21 +6,22 @@ import { useCart } from '@/lib/cart-store';
 import { priceOrder } from '@/lib/pricing';
 import { normalizeGhPhone } from '@/lib/ghana';
 import { useToast } from '@/components/Toast';
+import { Icon, type IconName } from '@/components/Icon';
 import { ghs } from '@/lib/money';
 
 type Zone = { id: string; name: string; regions: string[]; fee: number; freeOver: number | null; etaDays: number };
 type AddressIn = { id: string; label: string; region: string; city: string; landmark: string; gps: string; phone: string; isDefault: boolean };
 
-const METHOD_META: Record<string, { label: string; icon: string; note: string; phonePrompt?: boolean }> = {
-  MOMO_MTN: { label: 'MTN Mobile Money', icon: '📱', note: 'A payment prompt will pop on your MTN line — approve with your PIN.', phonePrompt: true },
-  MOMO_TELECEL: { label: 'Telecel Cash', icon: '📱', note: 'Approve the Telecel prompt on your phone to confirm.', phonePrompt: true },
-  MOMO_AT: { label: 'AT Money', icon: '📱', note: 'You will get an AT Money push/SMS to authorise.', phonePrompt: true },
-  CARD: { label: 'Visa / Mastercard', icon: '💳', note: 'Hosted card page. Sandbox: 4084 0840 8408 4081, any future expiry, OTP 123456.' },
-  BANK_TRANSFER: { label: 'Bank transfer / GhIPSS', icon: '🏦', note: 'We send account details instantly after checkout; order confirms on receipt (usually < 1 h).' },
-  GHIPSS: { label: 'GhIPSS Instant Pay', icon: '🇬🇭', note: 'Pay from any Ghanaian bank or mobile wallet through the national switch.' },
-  QR: { label: 'Scan QR to pay', icon: '▣', note: 'A QR code appears after checkout — scan with any banking app. Expires in 15 minutes.' },
-  PAY_ON_DELIVERY: { label: 'Pay on delivery', icon: '🚚', note: 'Cash or MoMo to the rider at your door. Available in Greater Accra & Kumasi.', },
-  MANUAL_TRANSFER: { label: 'Manual transfer (with proof)', icon: '🧾', note: 'Transfer to our Ecobank/CalBank merchant account, then upload the receipt on the next screen — we approve within 30 minutes in business hours.' },
+const METHOD_META: Record<string, { label: string; icon?: IconName; glyph?: string; note: string; phonePrompt?: boolean }> = {
+  MOMO_MTN: { label: 'MTN Mobile Money', icon: 'smartphone', note: 'A payment prompt will pop on your MTN line — approve with your PIN.', phonePrompt: true },
+  MOMO_TELECEL: { label: 'Telecel Cash', icon: 'smartphone', note: 'Approve the Telecel prompt on your phone to confirm.', phonePrompt: true },
+  MOMO_AT: { label: 'AT Money', icon: 'smartphone', note: 'You will get an AT Money push/SMS to authorise.', phonePrompt: true },
+  CARD: { label: 'Visa / Mastercard', icon: 'credit_card', note: 'Hosted card page. Sandbox: 4084 0840 8408 4081, any future expiry, OTP 123456.' },
+  BANK_TRANSFER: { label: 'Bank transfer / GhIPSS', icon: 'account_balance', note: 'We send account details instantly after checkout; order confirms on receipt (usually < 1 h).' },
+  GHIPSS: { label: 'GhIPSS Instant Pay', glyph: '🇬🇭', note: 'Pay from any Ghanaian bank or mobile wallet through the national switch.' },
+  QR: { label: 'Scan QR to pay', glyph: '▣', note: 'A QR code appears after checkout — scan with any banking app. Expires in 15 minutes.' },
+  PAY_ON_DELIVERY: { label: 'Pay on delivery', icon: 'local_shipping', note: 'Cash or MoMo to the rider at your door. Available in Greater Accra & Kumasi.', },
+  MANUAL_TRANSFER: { label: 'Manual transfer (with proof)', icon: 'receipt_long', note: 'Transfer to our Ecobank/CalBank merchant account, then upload the receipt on the next screen — we approve within 30 minutes in business hours.' },
 };
 
 export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }: {
@@ -125,7 +126,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
   if (items.length === 0) {
     return (
       <div className="card p-10 text-center max-w-lg mx-auto">
-        <p className="text-5xl mb-3">🧾</p>
+        <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt"><Icon name="receipt_long" size={32} /></span>
         <h2 className="font-display text-xl font-extrabold mb-2">Nothing to check out</h2>
         <p className="text-sm text-soft mb-5">Add something genuine first — your cart is empty.</p>
         <Link href="/shop" className="btn-primary !px-6 !py-3">Go to the shop</Link>
@@ -157,7 +158,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
             {(['DELIVERY', 'PICKUP'] as const).map(f => (
               <button type="button" key={f} role="radio" aria-checked={fulfilment === f} onClick={() => setFulfilment(f)}
                 className={`rounded-xl border-2 p-3.5 text-left transition-colors min-h-[64px] ${fulfilment === f ? 'border-blue bg-blue/5' : 'border-line hover:border-blue/40'}`}>
-                <span className="font-bold text-sm block">{f === 'DELIVERY' ? '🚚 Deliver to me' : '🏬 Pick up in Osu'}</span>
+                <span className="font-bold text-sm inline-flex items-center gap-1.5"><Icon name={f === 'DELIVERY' ? 'local_shipping' : 'storefront'} size={16} />{f === 'DELIVERY' ? 'Deliver to me' : 'Pick up in Osu'}</span>
                 <span className="text-[12px] text-soft">{f === 'DELIVERY' ? (zone ? `${zone.name} · ${zone.etaDays}-2 days` : 'Fee by zone') : shopAddress}</span>
               </button>
             ))}
@@ -217,7 +218,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
                 <label key={m} className={`flex items-start gap-3 border rounded-xl p-3.5 cursor-pointer transition-colors min-h-[56px] ${method === m ? 'border-blue bg-blue/5 ring-1 ring-blue/30' : 'border-line hover:border-blue/40'}`}>
                   <input type="radio" name="paymethod" value={m} checked={method === m} onChange={() => setMethod(m)} className="mt-1 w-4 h-4 accent-[#0C4A55]" />
                   <span className="flex-1">
-                    <span className="font-bold text-sm">{meta.icon} {meta.label}</span>
+                    <span className="font-bold text-sm inline-flex items-center gap-1.5">{meta.icon ? <Icon name={meta.icon} size={16} /> : meta.glyph} {meta.label}</span>
                     <span className="block text-[12px] text-soft mt-0.5">{meta.note}</span>
                     {method === m && meta.phonePrompt && (
                       <span className="block mt-2.5">
@@ -246,7 +247,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
             </li>
           ))}
         </ul>
-        {coupon && <p className="text-[12.5px] font-bold text-success">✓ Coupon {coupon.code} will be re-verified server-side</p>}
+        {coupon && <p className="text-[12.5px] font-bold text-success inline-flex items-center gap-1"><Icon name="check" size={14} />Coupon {coupon.code} will be re-verified server-side</p>}
         <dl className="space-y-1.5 text-sm border-t border-line pt-3">
           <div className="flex justify-between"><dt className="text-soft">Subtotal</dt><dd className="font-bold">{ghs(pricing.subtotal)}</dd></div>
           {pricing.discount > 0 && <div className="flex justify-between text-success"><dt>Discount</dt><dd className="font-black">−{ghs(pricing.discount)}</dd></div>}
@@ -271,7 +272,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
         <button disabled={busy} className="btn-gold w-full !py-4 text-[15px] min-h-[48px]">
           {busy ? 'Placing order…' : method === 'PAY_ON_DELIVERY' ? 'Place order — pay on delivery' : `Pay ${ghs(pricing.total)} securely →`}
         </button>
-        <p className="text-[11.5px] text-soft text-center">🔒 Your details never leave GabiElectricals. Demo mode — no real money moves.</p>
+        <p className="text-[11.5px] text-soft text-center inline-flex items-center gap-1 justify-center"><Icon name="lock" size={12} />Your details never leave GabiElectricals. Demo mode — no real money moves.</p>
       </aside>
     </form>
   );

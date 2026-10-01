@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { requireRole } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Icon } from '@/components/Icon';
 
 
 export const dynamic = 'force-dynamic';
@@ -25,7 +26,7 @@ export default async function AdminTechnicians() {
           <div key={t.id} className="card space-y-2 p-4">
             <div className="flex items-center justify-between gap-2">
               <p className="font-display font-extrabold text-navy dark:text-white">{t.user.name}</p>
-              <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-xs font-extrabold text-gold-dark">{t.rating.toFixed(1)}★</span>
+              <span className="rounded-full bg-gold/20 px-2.5 py-0.5 text-xs font-extrabold text-gold-dark">{t.rating.toFixed(1)}<Icon name="star" size={12} className="inline" filled /></span>
             </div>
             <p className="text-xs font-semibold text-soft">{t.user.email} · {t.user.phone}</p>
             <div className="flex flex-wrap gap-1.5">

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 import CopyButton from './CopyButton';
 
 export const dynamic = 'force-dynamic';
@@ -70,7 +71,7 @@ export default async function AccountOverview() {
           </div>
           {orders.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-3xl" aria-hidden="true">📦</p>
+              <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="inventory_2" size={30} /></span>
               <p className="text-[13px] text-soft mt-2">No orders yet.</p>
               <Link href="/shop" className="btn-primary mt-3 px-4 py-2 text-[13px] inline-flex">Shop the catalog</Link>
             </div>
@@ -106,7 +107,7 @@ export default async function AccountOverview() {
           </div>
           {bookings.length === 0 ? (
             <div className="text-center py-6">
-              <p className="text-3xl" aria-hidden="true">🗓️</p>
+              <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="calendar_month" size={30} /></span>
               <p className="text-[13px] text-soft mt-2">No service bookings yet.</p>
               <Link href="/book" className="btn-gold mt-3 px-4 py-2 text-[13px] inline-flex">Book an electrician</Link>
             </div>

@@ -6,6 +6,7 @@ import { ghs } from '@/lib/money';
 import { JSONLd } from '@/components/JsonLd';
 import { getSettings } from '@/lib/settings';
 import { URGENCIES, type UrgencyKey } from '@/lib/booking';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -98,8 +99,8 @@ export default async function ServiceDetailPage({ params }: Params) {
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-ink/90 dark:text-white/85">{svc.description}</p>
               <div className="mt-3 flex flex-wrap gap-4 text-[13px] font-semibold text-soft">
-                <span className="inline-flex items-center gap-1.5">⏱ Typical duration: <b className="text-ink dark:text-white">{Math.round(svc.durationMins / 60)} hr{svc.durationMins >= 120 ? 's' : ''}</b></span>
-                <span className="inline-flex items-center gap-1.5">💼 Deposit policy: <b className="text-ink dark:text-white">{svc.depositPct}% to lock the slot</b></span>
+                <span className="inline-flex items-center gap-1.5"><Icon name="schedule" size={15} /> Typical duration: <b className="text-ink dark:text-white">{Math.round(svc.durationMins / 60)} hr{svc.durationMins >= 120 ? 's' : ''}</b></span>
+                <span className="inline-flex items-center gap-1.5"><Icon name="work" size={15} /> Deposit policy: <b className="text-ink dark:text-white">{svc.depositPct}% to lock the slot</b></span>
               </div>
             </div>
 
@@ -109,13 +110,13 @@ export default async function ServiceDetailPage({ params }: Params) {
               <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5">
                 {includes.map(i => (
                   <li key={i} className="flex items-start gap-2 text-[14px]">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/15 text-success text-[11px] font-black" aria-hidden="true">✓</span>
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success/15 text-success" aria-hidden="true"><Icon name="check" size={12} /></span>
                     {i}
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-[12.5px] text-soft border-t border-line pt-3">
-                🔒 Every job finishes with testing and a <b>{svc.durationMins >= 480 ? '12-month' : 'workmanship'} warranty</b> — we return free if anything we touched fails.
+              <p className="mt-4 text-[12.5px] text-soft border-t border-line pt-3 inline-flex items-start gap-1.5">
+                <Icon name="lock" size={15} className="mt-0.5 shrink-0" /> <span>Every job finishes with testing and a <b>{svc.durationMins >= 480 ? '12-month' : 'workmanship'} warranty</b> — we return free if anything we touched fails.</span>
               </p>
             </section>
 
@@ -139,7 +140,7 @@ export default async function ServiceDetailPage({ params }: Params) {
                       const pct = sur > 0 ? Math.round((sur / svc.basePrice) * 100) : 0;
                       return (
                         <tr key={u} className="border-b border-line/60 last:border-0">
-                          <td className="py-3 pr-4 font-bold">{u === 'STANDARD' ? 'Standard' : u === 'URGENT' ? '🕐 Urgent' : '🚨 Emergency'}</td>
+                          <td className="py-3 pr-4 font-bold inline-flex items-center gap-1.5">{u === 'STANDARD' ? 'Standard' : u === 'URGENT' ? <><Icon name="schedule" size={16} /> Urgent</> : <><Icon name="siren" size={16} /> Emergency</>}</td>
                           <td className="py-3 pr-4">{sur === 0 ? <span className="text-success font-bold">No fee</span> : <span>{ghs(sur)} <span className="text-soft">(+{pct}%)</span></span>}</td>
                           <td className="py-3 pr-4 font-extrabold text-navy dark:text-white">{ghs(svc.basePrice + sur)}</td>
                           <td className="py-3 text-soft">{URGENCY_BLURB[u]}</td>
@@ -226,10 +227,10 @@ export default async function ServiceDetailPage({ params }: Params) {
               <span className="text-[13px] font-bold text-soft ml-1">before free quote check</span>
             </p>
             <ul className="mt-4 space-y-2 text-[13px]">
-              <li className="flex gap-2 items-center"><span className="text-success font-black" aria-hidden="true">✓</span> NIET-certified electricians</li>
-              <li className="flex gap-2 items-center"><span className="text-success font-black" aria-hidden="true">✓</span> Warranty included</li>
-              <li className="flex gap-2 items-center"><span className="text-success font-black" aria-hidden="true">✓</span> {ghs(Math.round((svc.basePrice * svc.depositPct) / 100))} deposit · balance after job</li>
-              <li className="flex gap-2 items-center"><span className="text-success font-black" aria-hidden="true">✓</span> Genuine materials only</li>
+              <li className="flex gap-2 items-center"><span className="text-success" aria-hidden="true"><Icon name="check" size={14} /></span> NIET-certified electricians</li>
+              <li className="flex gap-2 items-center"><span className="text-success" aria-hidden="true"><Icon name="check" size={14} /></span> Warranty included</li>
+              <li className="flex gap-2 items-center"><span className="text-success" aria-hidden="true"><Icon name="check" size={14} /></span> {ghs(Math.round((svc.basePrice * svc.depositPct) / 100))} deposit · balance after job</li>
+              <li className="flex gap-2 items-center"><span className="text-success" aria-hidden="true"><Icon name="check" size={14} /></span> Genuine materials only</li>
             </ul>
             <Link href={`/book?service=${svc.slug}`} className="btn-primary w-full mt-5 py-3.5 text-[15px]">
               Book {svc.name.split(' ').slice(0, 3).join(' ')}
@@ -238,12 +239,12 @@ export default async function ServiceDetailPage({ params }: Params) {
             <a href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hi, I'd like a price for ${svc.name} (${svc.slug})`)}`}
               target="_blank" rel="noopener noreferrer"
               className="mt-3 flex items-center justify-center gap-2 w-full py-2.5 rounded-[10px] border border-success/40 text-success text-[13px] font-bold hover:bg-success/10 transition-colors">
-              <span aria-hidden="true">💬</span> Ask an electrician on WhatsApp
+              <span aria-hidden="true"><Icon name="chat" size={16} /></span> Ask an electrician on WhatsApp
             </a>
             <div className="mt-4 border-t border-line pt-3 text-[12px] text-soft space-y-1">
-              <p>📞 {settings.business.phone}</p>
-              <p>🕐 {settings.business.hours}</p>
-              <p>📍 {settings.business.address}</p>
+              <p className="inline-flex items-center gap-1.5"><Icon name="call" size={14} /> {settings.business.phone}</p>
+              <p className="inline-flex items-center gap-1.5"><Icon name="schedule" size={14} /> {settings.business.hours}</p>
+              <p className="inline-flex items-center gap-1.5"><Icon name="location_on" size={14} /> {settings.business.address}</p>
             </div>
           </aside>
         </div>

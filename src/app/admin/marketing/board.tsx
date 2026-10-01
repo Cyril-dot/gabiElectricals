@@ -116,7 +116,7 @@ export function MarketingBoard({ subs, leads, carts }: { subs: Sub[]; leads: Lea
               <Field label="Channel"><select className={inputCls} value={b.channel} onChange={(e) => setB({ ...b, channel: e.target.value })}><option>EMAIL</option><option>SMS</option><option>WHATSAPP</option></select></Field>
               <Field label="Audience"><select className={inputCls} value={b.audience} onChange={(e) => setB({ ...b, audience: e.target.value })}><option value="SUBSCRIBERS">Newsletter subscribers</option><option value="LEADS">Leads</option><option value="CUSTOMERS">Customers</option></select></Field>
             </div>
-            {b.channel === 'EMAIL' && <Field label="Subject"><input className={inputCls} value={b.subject} onChange={(e) => setB({ ...b, subject: e.target.value })} placeholder="Rambo deals inside ⚡" /></Field>}
+            {b.channel === 'EMAIL' && <Field label="Subject"><input className={inputCls} value={b.subject} onChange={(e) => setB({ ...b, subject: e.target.value })} placeholder="Rambo deals inside" /></Field>}
             <Field label="Message"><textarea rows={4} maxLength={1500} className={inputCls} value={b.message} onChange={(e) => setB({ ...b, message: e.target.value })} /></Field>
             <button disabled={busy !== null || b.message.length < 10} className="btn-gold px-4 py-2 text-sm"
               onClick={() => run('bc', () => api('/api/admin/marketing/broadcast', { method: 'POST', body: JSON.stringify({ channel: b.channel, audience: b.audience, subject: b.subject || undefined, message: b.message }) }), 'Broadcast logged to Notification Log (demo).')}>

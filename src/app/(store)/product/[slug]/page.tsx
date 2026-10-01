@@ -135,7 +135,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           {/* stock indicator */}
           {product.stock > 5 ? (
-            <p className="text-sm font-bold text-success mb-4" role="status">● In stock — {product.stock}+ units at our Accra warehouse</p>
+            <p className="text-sm font-bold text-success mb-4 inline-flex items-center gap-1.5" role="status"><span className="inline-block h-2.5 w-2.5 rounded-full bg-success" aria-hidden="true" /> In stock — {product.stock}+ units at our Accra warehouse</p>
           ) : product.stock > 0 ? (
             <p className="text-sm font-bold text-warning mb-4 inline-flex items-center gap-1.5" role="status"><Icon name="bolt" size={16} /> Only {product.stock} left — restock takes 2–3 weeks, buy now</p>
           ) : (

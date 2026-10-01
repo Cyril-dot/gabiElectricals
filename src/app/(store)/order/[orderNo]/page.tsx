@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
 import { OrderTimeline } from '@/components/OrderTimeline';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,11 +59,11 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
         {unpaid ? (
           <div className="mt-5 bg-warning/10 border border-warning/30 rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-semibold">Complete payment of <strong>{ghs(order.total)}</strong> to lock in delivery — we hold your stock for 15 minutes on QR.</p>
-            <Link href={`/order/${order.orderNo}/pay`} className="btn-primary !px-5 !py-2.5 text-sm min-h-[44px]">💰 Pay now</Link>
+            <Link href={`/order/${order.orderNo}/pay`} className="btn-primary !px-5 !py-2.5 text-sm min-h-[44px] inline-flex items-center gap-1.5"><Icon name="payments" size={16} />Pay now</Link>
           </div>
         ) : (
           <div className="mt-5 bg-success/10 border border-success/30 rounded-xl p-4">
-            <p className="text-sm font-semibold text-success">✓ {order.status === 'DELIVERED' ? 'Delivered — thank you for choosing genuine.' : order.fulfilment === 'PICKUP' ? 'Confirmed — collect at ' + settings.business.address : 'Confirmed and paid — packing soon.'}</p>
+            <p className="text-sm font-semibold text-success inline-flex items-center gap-1.5"><Icon name="check" size={16} />{order.status === 'DELIVERED' ? 'Delivered — thank you for choosing genuine.' : order.fulfilment === 'PICKUP' ? 'Confirmed — collect at ' + settings.business.address : 'Confirmed and paid — packing soon.'}</p>
           </div>
         )}
         {payRef && linkedPayment && (
@@ -75,8 +76,8 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           <h2 className="font-display text-lg font-extrabold mb-4">Progress</h2>
           <OrderTimeline status={order.status} events={order.events} />
           <div className="flex flex-wrap gap-2 mt-5">
-            <Link href={`/order/${order.orderNo}/invoice`} className="btn-ghost !px-4 !py-2.5 text-sm">🧾 Download invoice</Link>
-            <Link href={`/track?orderNo=${order.orderNo}`} className="btn-ghost !px-4 !py-2.5 text-sm">📍 Track this order</Link>
+            <Link href={`/order/${order.orderNo}/invoice`} className="btn-ghost !px-4 !py-2.5 text-sm inline-flex items-center gap-1.5"><Icon name="receipt_long" size={16} />Download invoice</Link>
+            <Link href={`/track?orderNo=${order.orderNo}`} className="btn-ghost !px-4 !py-2.5 text-sm inline-flex items-center gap-1.5"><Icon name="location_on" size={16} />Track this order</Link>
           </div>
         </section>
 

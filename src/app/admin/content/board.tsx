@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import { Badge, CopyButton, EmptyState, Field, Msg, Tabs, api, inputCls, tableWrap, tdCls, thCls, useMsg } from '@/components/ops/ui';
+import { Icon } from '@/components/Icon';
 
 type Hero = { id: string; headline: string; sub: string; ctaLabel: string; ctaHref: string; cta2Label: string | null; cta2Href: string | null; image: string; badge: string | null; sortOrder: number; active: boolean };
 type Faq = { id: string; question: string; answer: string; category: string; context: string; sortOrder: number };
@@ -126,7 +127,7 @@ export function ContentBoard(p: Props) {
             {p.testimonials.map((t) => (
               <div key={t.id} className="card p-4">
                 <p className="text-sm font-bold text-navy dark:text-white">{t.name} <span className="font-normal text-soft">{t.role ? `· ${t.role}` : ''} {t.area ? `· ${t.area}` : ''}</span> <Badge tone={t.active ? 'success' : 'soft'}>{t.active ? 'ON' : 'OFF'}</Badge></p>
-                <p className="mt-1 text-xs text-soft">{'★'.repeat(t.rating)}{'☆'.repeat(5 - t.rating)}</p>
+                <p className="mt-1 text-xs text-soft">{Array.from({length:5},(_,i)=>(<Icon key={i} name="star" size={13} filled={i<t.rating} className={i<t.rating?'text-gold':'text-line'} />))}</p>
                 <p className="mt-1 text-sm">“{t.quote}”</p>
                 <div className="mt-2 flex gap-1.5">
                   <button className="btn-ghost px-2.5 py-1 text-xs" onClick={() => setEdit({ model: 'testimonial', data: t as never })}>Edit</button>

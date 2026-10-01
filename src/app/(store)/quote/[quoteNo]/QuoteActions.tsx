@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ghs } from '@/lib/money';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 
 const METHODS = [
   { key: 'MOMO_MTN', label: 'MTN MoMo' }, { key: 'MOMO_TELECEL', label: 'Telecel Cash' }, { key: 'MOMO_AT', label: 'AT Money' },
@@ -35,7 +36,7 @@ export default function QuoteActions(p: Props) {
         const j = await r.json();
         setPayStatus(j.status ?? j.quoteStatus);
         if (j.quoteStatus === 'PAID' || j.status === 'PAID') {
-          toast('Quote paid — work scheduling started 🎉', 'ok');
+          toast('Quote paid — work scheduling started', 'ok');
           setTimeout(() => window.location.reload(), 1200);
         }
         if (['FAILED', 'EXPIRED'].includes(j.status)) toast(`Payment ${String(j.status).toLowerCase()} — you can retry`, 'err');
@@ -95,8 +96,8 @@ export default function QuoteActions(p: Props) {
 
   if (paid) {
     return (
-      <div className="mt-5 rounded-xl bg-success/10 border border-success/30 p-4 text-success font-bold text-[14px]">
-        ✅ This quote has been paid ({ghs(p.amount)}). GabiElectricals will contact you to schedule.
+      <div className="mt-5 rounded-xl bg-success/10 border border-success/30 p-4 text-success font-bold text-[14px] inline-flex items-center gap-1.5">
+        <Icon name="check_circle" size={18} /> This quote has been paid ({ghs(p.amount)}). GabiElectricals will contact you to schedule.
       </div>
     );
   }
@@ -105,9 +106,9 @@ export default function QuoteActions(p: Props) {
   }
   if (p.status === 'EXPIRED') {
     return (
-      <div className="mt-5 rounded-xl bg-danger/10 border border-danger/30 p-4 text-danger font-bold text-[14px]">
-        ⌛ This quote expired. <button onClick={() => setShowDecline(true)} className="underline">Ask for a refresh</button>
-        {showDecline && <p className="text-ink text-[12.5px] font-normal mt-2">Reply to the SMS or call our line — we will re-issue with current pricing, no obligation.</p>}
+      <div className="mt-5 rounded-xl bg-danger/10 border border-danger/30 p-4 text-danger font-bold text-[14px] inline-flex items-center gap-1.5 flex-wrap">
+        <Icon name="schedule" size={17} /> This quote expired. <button onClick={() => setShowDecline(true)} className="underline">Ask for a refresh</button>
+        {showDecline && <p className="text-ink text-[12.5px] font-normal mt-2 w-full">Reply to the SMS or call our line — we will re-issue with current pricing, no obligation.</p>}
       </div>
     );
   }
@@ -116,13 +117,15 @@ export default function QuoteActions(p: Props) {
     <div className="mt-6 space-y-3">
       {ref ? (
         <div className="rounded-xl border border-blue/30 bg-blue/5 p-4" role="status">
-          <p className="font-bold text-[14px]">
-            {payStatus === 'PAID' ? '✅ Paid' : payStatus === 'PENDING' ? `⏳ Awaiting payment of ${ghs(p.amount)}` : `⚠️ Payment ${payStatus.toLowerCase()}`}
+          <p className="font-bold text-[14px] inline-flex items-center gap-1.5">
+            {payStatus === 'PAID' ? <><Icon name="check_circle" size={17} className="text-success" /> Paid</>
+              : payStatus === 'PENDING' ? <><Icon name="schedule" size={17} className="text-blue" /> Awaiting payment of {ghs(p.amount)}</>
+              : <><Icon name="warning" size={17} className="text-danger" /> Payment {payStatus.toLowerCase()}</>}
           </p>
           {prompt && <p className="text-[12.5px] text-soft mt-1">{prompt}</p>}
           <p className="text-[11px] text-soft/80 font-mono mt-1">Ref {ref} · polling every 4s</p>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => simulate('success')} disabled={busy} className="btn-gold px-4 py-2 text-[12.5px]">✓ Simulate approval (demo)</button>
+            <button onClick={() => simulate('success')} disabled={busy} className="btn-gold px-4 py-2 text-[12.5px] inline-flex items-center gap-1.5"><Icon name="check" size={14} /> Simulate approval (demo)</button>
             <button onClick={() => simulate('fail')} disabled={busy} className="btn-ghost px-4 py-2 text-[12.5px]">Simulate decline</button>
             {payStatus !== 'PENDING' && <button onClick={() => { setRef(null); }} className="btn-primary px-4 py-2 text-[12.5px]">Retry payment</button>}
           </div>

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
 import { ghs } from '@/lib/money';
+import { Icon } from '@/components/Icon';
 import CompareRemove from './CompareRemove';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ export default async function AccountCompare() {
       <section aria-label="Compare" className="space-y-4">
         <h2 className="font-display font-extrabold text-xl">Compare</h2>
         <div className="card p-10 text-center">
-          <p className="text-4xl" aria-hidden="true">⇄</p>
+          <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="sync" size={30} /></span>
           <p className="font-bold mt-2">Nothing to compare</p>
           <p className="text-[13px] text-soft mt-1">Add up to 3 products from the shop and we put them side by side — specs, warranty, price.</p>
           <Link href="/shop" className="btn-primary mt-4 px-5 py-2.5 text-[13.5px] inline-flex">Find products</Link>
@@ -67,7 +68,7 @@ export default async function AccountCompare() {
             {[
               { label: 'Price', render: (pr: typeof prods[number]) => <b className="text-gold-dark">{ghs(pr.price)}</b> },
               { label: 'Was', render: (pr: typeof prods[number]) => (pr.compareAtPrice ? <s className="text-soft">{ghs(pr.compareAtPrice)}</s> : <span className="text-soft">—</span>) },
-              { label: 'Rating', render: (pr: typeof prods[number]) => <span>{'★'.repeat(Math.round(pr.rating))} {pr.rating.toFixed(1)} ({pr.reviewCount})</span> },
+              { label: 'Rating', render: (pr: typeof prods[number]) => <span>{Array.from({length:5},(_,i)=>(<Icon key={i} name="star" size={13} filled={i<Math.round(pr.rating)} className={i<Math.round(pr.rating)?'text-gold':'text-line'} />))} {pr.rating.toFixed(1)} ({pr.reviewCount})</span> },
               { label: 'In stock', render: (pr: typeof prods[number]) => (pr.stock > 0 ? <span className="text-success font-bold">{pr.stock} units</span> : <span className="text-danger font-bold">Out</span>) },
               { label: 'Brand', render: (pr: typeof prods[number]) => <span>{pr.brand?.name ?? '—'}</span> },
               { label: 'Category', render: (pr: typeof prods[number]) => <span>{pr.category.name}</span> },

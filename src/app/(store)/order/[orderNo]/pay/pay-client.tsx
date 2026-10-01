@@ -5,13 +5,14 @@ import QRCode from 'qrcode';
 import { networkLabel } from '@/lib/gateway';
 import { ghs } from '@/lib/money';
 import { useToast } from '@/components/Toast';
+import { Icon, type IconName } from '@/components/Icon';
 
 const CHOICES = ['MOMO_MTN', 'MOMO_TELECEL', 'MOMO_AT', 'CARD', 'BANK_TRANSFER', 'GHIPSS', 'QR', 'MANUAL_TRANSFER'] as const;
 type Choice = (typeof CHOICES)[number];
 
-const ICONS: Record<Choice, string> = {
-  MOMO_MTN: '📱', MOMO_TELECEL: '📲', MOMO_AT: '📳', CARD: '💳',
-  BANK_TRANSFER: '🏦', GHIPSS: '🇬🇭', QR: '▣', MANUAL_TRANSFER: '🧾',
+const ICONS: Record<Choice, { icon?: IconName; glyph?: string }> = {
+  MOMO_MTN: { icon: 'smartphone' }, MOMO_TELECEL: { icon: 'smartphone' }, MOMO_AT: { icon: 'smartphone' }, CARD: { icon: 'credit_card' },
+  BANK_TRANSFER: { icon: 'account_balance' }, GHIPSS: { glyph: '🇬🇭' }, QR: { glyph: '▣' }, MANUAL_TRANSFER: { icon: 'receipt_long' },
 };
 
 type Init = { reference: string; status: string; prompt?: string; qrPayload?: string; expiresAt?: string; amount: number };
@@ -56,7 +57,7 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
         if (j.status === 'PAID' && !doneRef.current) {
           doneRef.current = true;
           clearInterval(t);
-          toast('Payment confirmed — power moving! ⚡');
+          toast('Payment confirmed — power moving!');
           router.push(`/order/${orderNo}?ref=${init.reference}`);
           router.refresh();
         }
@@ -115,7 +116,7 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
               {CHOICES.map(m => (
                 <button type="button" key={m} role="radio" aria-checked={method === m} onClick={() => setMethod(m)}
                   className={`rounded-xl border-2 p-3 text-center transition-colors min-h-[64px] ${method === m ? 'border-blue bg-blue/5' : 'border-line hover:border-blue/40'}`}>
-                  <span className="block text-xl" aria-hidden>{ICONS[m]}</span>
+                  <span className="block" aria-hidden>{ICONS[m].icon ? <Icon name={ICONS[m].icon!} size={22} /> : <span className="text-xl">{ICONS[m].glyph}</span>}</span>
                   <span className="block text-[11.5px] font-bold mt-1">{m === 'MANUAL_TRANSFER' ? 'Manual (proof)' : networkLabel(m)}</span>
                 </button>
               ))}
@@ -142,9 +143,9 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
         <div className="space-y-5">
           <div className="bg-mist dark:bg-navy-700 rounded-xl p-4 text-sm">
             <p className="font-bold">Reference: <span className="font-mono">{init.reference}</span></p>
-            {init.prompt && <p className="mt-1">📲 {init.prompt}</p>}
-            {method === 'CARD' && <p className="mt-1">💳 Sandbox: 4084 0840 8408 4081 · any future expiry · OTP 123456.</p>}
-            {method === 'QR' && leftSecs !== null && <p className="mt-1">⏳ QR expires in {Math.floor(leftSecs / 60)}:{String(leftSecs % 60).padStart(2, '0')} ({qrExpiryMinutes}-minute window).</p>}
+            {init.prompt && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="smartphone" size={14} />{init.prompt}</p>}
+            {method === 'CARD' && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="credit_card" size={14} />Sandbox: 4084 0840 8408 4081 · any future expiry · OTP 123456.</p>}
+            {method === 'QR' && leftSecs !== null && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="schedule" size={14} />QR expires in {Math.floor(leftSecs / 60)}:{String(leftSecs % 60).padStart(2, '0')} ({qrExpiryMinutes}-minute window).</p>}
             {init.qrPayload && (
               <div className="flex flex-col items-center mt-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -158,9 +159,9 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
           <div className="card p-4 border-dashed">
             <p className="text-[12.5px] font-bold text-soft uppercase tracking-wide mb-2">Demo sandbox — simulate the {method.startsWith('MOMO') ? 'payer' : 'bank'}</p>
             <div className="grid grid-cols-3 gap-2">
-              <button onClick={() => simulate('success')} disabled={busy} className="btn-primary !py-2.5 text-[13px] min-h-[44px]">✅ Approve</button>
-              <button onClick={() => simulate('pending')} disabled={busy} className="btn-ghost !py-2.5 text-[13px] min-h-[44px]">⏳ Stay pending</button>
-              <button onClick={() => simulate('fail')} disabled={busy} className="btn-ghost !py-2.5 text-[13px] text-danger border-danger/40 min-h-[44px]">✕ Decline</button>
+              <button onClick={() => simulate('success')} disabled={busy} className="btn-primary !py-2.5 text-[13px] min-h-[44px] inline-flex items-center justify-center gap-1.5"><Icon name="check_circle" size={15} />Approve</button>
+              <button onClick={() => simulate('pending')} disabled={busy} className="btn-ghost !py-2.5 text-[13px] min-h-[44px] inline-flex items-center justify-center gap-1.5"><Icon name="schedule" size={15} />Stay pending</button>
+              <button onClick={() => simulate('fail')} disabled={busy} className="btn-ghost !py-2.5 text-[13px] text-danger border-danger/40 min-h-[44px] inline-flex items-center justify-center gap-1.5"><Icon name="close" size={15} />Decline</button>
             </div>
             <p className="text-[11px] text-soft mt-2">Simulated outcomes also fire the real webhook path (status polling + OrderEvents + SMS/email logging).</p>
           </div>

@@ -248,7 +248,7 @@ export function ProductEditor({ init, cats, brands }: { init: ProductInit; cats:
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt={`Image ${i + 1}`} className="h-20 w-full rounded-lg border border-line object-cover" />
                   <button aria-label="Remove image" onClick={() => set('images')(f.images.filter((_, j) => j !== i))}
-                    className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-danger text-[10px] font-black text-white">✕</button>
+                    className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-danger text-[10px] font-black text-white"><Icon d={ICONS.x} className="h-3 w-3" /></button>
                 </div>
               ))}
             </div>
@@ -266,7 +266,7 @@ export function ProductEditor({ init, cats, brands }: { init: ProductInit; cats:
               {f.badges.map(b => (
                 <span key={b} className="flex items-center gap-1 rounded-full bg-gold/20 px-2.5 py-1 text-xs font-extrabold text-gold-dark">
                   {b}
-                  <button aria-label={`Remove ${b}`} onClick={() => set('badges')(f.badges.filter(x => x !== b))} className="text-[10px]">✕</button>
+                  <button aria-label={`Remove ${b}`} onClick={() => set('badges')(f.badges.filter(x => x !== b))} className="text-[10px]"><Icon d={ICONS.x} className="h-3 w-3" /></button>
                 </span>
               ))}
             </div>
@@ -283,7 +283,7 @@ export function ProductEditor({ init, cats, brands }: { init: ProductInit; cats:
               {f.tags.map(t => (
                 <span key={t} className="flex items-center gap-1 rounded-full bg-blue/10 px-2.5 py-1 text-xs font-extrabold text-blue">
                   #{t}
-                  <button aria-label={`Remove tag ${t}`} onClick={() => set('tags')(f.tags.filter(x => x !== t))} className="text-[10px]">✕</button>
+                  <button aria-label={`Remove tag ${t}`} onClick={() => set('tags')(f.tags.filter(x => x !== t))} className="text-[10px]"><Icon d={ICONS.x} className="h-3 w-3" /></button>
                 </span>
               ))}
             </div>

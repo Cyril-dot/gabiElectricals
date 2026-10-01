@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { getSession } from '@/lib/auth';
+import { Icon } from '@/components/Icon';
 import { ProductCard, type CardProduct } from '@/components/ProductCard';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export default async function AccountWishlist() {
       <h2 className="font-display font-extrabold text-xl">Wishlist <span className="text-soft font-semibold text-[14px]">({cards.length})</span></h2>
       {cards.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="text-4xl" aria-hidden="true">♡</p>
+          <span className="mx-auto mb-3 grid h-16 w-16 place-items-center rounded-2xl bg-volt/15 text-navy dark:text-volt" aria-hidden="true"><Icon name="favorite" size={30} /></span>
           <p className="font-bold mt-2">Nothing saved yet</p>
           <p className="text-[13px] text-soft mt-1">Tap the heart on any product to keep it here for later.</p>
           <Link href="/shop" className="btn-primary mt-4 px-5 py-2.5 text-[13.5px] inline-flex">Browse products</Link>

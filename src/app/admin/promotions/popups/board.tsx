@@ -69,7 +69,7 @@ export function PopupBoard({ popups, couponCodes }: { popups: Popup[]; couponCod
           <div className="grid gap-3 md:grid-cols-2">
             <Field label="Internal name"><input className={inputCls} value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Easter welcome" /></Field>
             <Field label="Type"><select className={inputCls} value={form.kind} onChange={(e) => set('kind', e.target.value)}>{KINDS.map((k) => <option key={k}>{k}</option>)}</select></Field>
-            <div className="md:col-span-2"><Field label="Headline"><input className={inputCls} value={form.headline} onChange={(e) => set('headline', e.target.value)} placeholder="10% off your first order 🔥" /></Field></div>
+            <div className="md:col-span-2"><Field label="Headline"><input className={inputCls} value={form.headline} onChange={(e) => set('headline', e.target.value)} placeholder="10% off your first order" /></Field></div>
             <div className="md:col-span-2"><Field label="Body"><textarea rows={2} className={inputCls} maxLength={600} value={form.body} onChange={(e) => set('body', e.target.value)} /></Field></div>
             <Field label="Image URL"><input className={inputCls} value={form.image ?? ''} onChange={(e) => set('image', e.target.value)} placeholder="/images/…" /></Field>
             <Field label="Coupon code"><select className={inputCls} value={form.couponCode ?? ''} onChange={(e) => set('couponCode', e.target.value)}><option value="">None</option>{couponCodes.map((c) => <option key={c}>{c}</option>)}</select></Field>

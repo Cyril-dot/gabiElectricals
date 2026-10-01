@@ -86,7 +86,7 @@ export function CartClient({ tax, walletCredit, signedIn }: {
   if (items.length === 0) {
     return (
       <div className="card p-10 md:p-14 text-center max-w-xl mx-auto">
-        <p className="text-6xl mb-4">🛒</p>
+        <span className="mx-auto mb-4 grid h-20 w-20 place-items-center rounded-3xl bg-volt/15 text-navy dark:text-volt"><Icon name="shopping_cart" size={36} /></span>
         <h2 className="font-display text-2xl font-extrabold mb-2">Your cart is empty</h2>
         <p className="text-sm text-soft mb-6">Genuine Folded Cable, Schneider protection and dumsor-proof solar are one tap away.</p>
         <div className="flex flex-wrap gap-2 justify-center">
@@ -160,8 +160,8 @@ export function CartClient({ tax, walletCredit, signedIn }: {
           <label htmlFor="coupon" className="text-[13px] font-bold block mb-1">Coupon code</label>
           {coupon ? (
             <div className="flex items-center justify-between bg-success/10 border border-success/30 rounded-xl px-3 py-2.5">
-              <span className="text-sm font-black text-success">✓ {coupon.code} applied</span>
-              <button onClick={clearCoupon} className="text-soft hover:text-danger text-sm font-bold" aria-label="Remove coupon">✕</button>
+              <span className="inline-flex items-center gap-1 text-sm font-black text-success"><Icon name="check" size={14} />{coupon.code} applied</span>
+              <button onClick={clearCoupon} className="text-soft hover:text-danger text-sm font-bold" aria-label="Remove coupon"><Icon name="close" size={14} /></button>
             </div>
           ) : (
             <form onSubmit={applyCoupon} className="flex gap-2">
@@ -184,7 +184,7 @@ export function CartClient({ tax, walletCredit, signedIn }: {
             {zones.map(z => <option key={z.id} value={z.id}>{z.name} — {ghs(z.fee, { cents: false })} · {z.etaDays}d{z.freeOver ? ` · free over ${ghs(z.freeOver)}` : ''}</option>)}
           </select>
           {!pickup && zone?.freeOver && pricing.subtotal >= zone.freeOver && (
-            <p className="text-[12px] font-bold text-success mt-1.5">🎉 Order qualifies for FREE delivery in {zone.name}.</p>
+            <p className="inline-flex items-center gap-1 text-[12px] font-bold text-success mt-1.5"><Icon name="celebration" size={14} />Order qualifies for FREE delivery in {zone.name}.</p>
           )}
         </div>
 

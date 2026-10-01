@@ -183,8 +183,8 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             <button className="btn-ghost !px-3 !py-2.5 text-sm" aria-label="Apply sort">Go</button>
           </form>
           <div className="hidden sm:flex rounded-xl border border-line overflow-hidden" role="group" aria-label="View mode">
-            <Link href={pageHrefSafe(sp, 'grid')} aria-pressed={view === 'grid'} className={`px-3 py-2.5 text-sm font-bold ${view === 'grid' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}>▦ Grid</Link>
-            <Link href={pageHrefSafe(sp, 'list')} aria-pressed={view === 'list'} className={`px-3 py-2.5 text-sm font-bold border-l border-line ${view === 'list' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}>☰ List</Link>
+            <Link href={pageHrefSafe(sp, 'grid')} aria-pressed={view === 'grid'} className={`px-3 py-2.5 text-sm font-bold inline-flex items-center gap-1.5 ${view === 'grid' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}><Icon name="grid_view" size={16} /> Grid</Link>
+            <Link href={pageHrefSafe(sp, 'list')} aria-pressed={view === 'list'} className={`px-3 py-2.5 text-sm font-bold border-l border-line inline-flex items-center gap-1.5 ${view === 'list' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}><Icon name="menu" size={16} /> List</Link>
           </div>
         </div>
       </div>
@@ -220,9 +220,9 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
             <label htmlFor="rating" className="block text-sm font-bold">Minimum rating</label>
             <select id="rating" name="rating" defaultValue={s(sp, 'rating')} className="w-full border border-line rounded-lg px-2.5 py-2 text-sm bg-white dark:bg-navy min-h-[40px]">
               <option value="">Any</option>
-              <option value="4">4★ &amp; up</option>
-              <option value="4.5">4.5★ &amp; up</option>
-              <option value="5">5★ only</option>
+              <option value="4">4 stars &amp; up</option>
+              <option value="4.5">4.5 stars &amp; up</option>
+              <option value="5">5 stars only</option>
             </select>
             <label htmlFor="warranty" className="block text-sm font-bold mt-2">Warranty</label>
             <select id="warranty" name="warranty" defaultValue={s(sp, 'warranty')} className="w-full border border-line rounded-lg px-2.5 py-2 text-sm bg-white dark:bg-navy min-h-[40px]">
