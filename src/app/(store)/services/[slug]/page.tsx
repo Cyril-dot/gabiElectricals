@@ -88,7 +88,7 @@ export default async function ServiceDetailPage({ params }: Params) {
             <div>
               <div className="relative rounded-card overflow-hidden border border-line shadow-soft">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={svc.image ?? '/images/hero/hero-technician.svg'} alt={`${svc.name} by a GabiElectricals technician`}
+                <img src={svc.image ?? '/images/hero/hero-technician.webp'} alt={`${svc.name} by a GabiElectricals technician`}
                   width={1280} height={720} className="w-full h-48 md:h-72 object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy/80 to-transparent" aria-hidden="true" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
@@ -193,7 +193,7 @@ export default async function ServiceDetailPage({ params }: Params) {
                   {related.map(r => (
                     <Link key={r.id} href={`/services/${r.slug}`} className="card p-4 flex items-center gap-4 hover:border-blue transition-colors group">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={r.image ?? '/images/hero/hero-technician.svg'} alt="" aria-hidden="true" width={72} height={72} className="h-16 w-16 rounded-lg object-cover bg-mist shrink-0" />
+                      <img src={r.image ?? '/images/hero/hero-technician.webp'} alt="" aria-hidden="true" width={72} height={72} className="h-16 w-16 rounded-lg object-cover bg-mist shrink-0" />
                       <span className="min-w-0">
                         <span className="block font-bold text-[14px] group-hover:text-blue transition-colors line-clamp-1">{r.name}</span>
                         <span className="block text-[12.5px] text-soft mt-0.5 line-clamp-1">{r.shortDesc}</span>

@@ -62,7 +62,7 @@ export default async function ServicesPage() {
               <article key={s.id} className="card overflow-hidden flex flex-col group hover:shadow-pop transition-shadow">
                 <Link href={`/services/${s.slug}`} aria-label={`View ${s.name} details`} className="relative block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={s.image ?? '/images/hero/hero-technician.svg'} alt={s.name} width={640} height={360} loading="lazy"
+                  <img src={s.image ?? '/images/hero/hero-technician.webp'} alt={s.name} width={640} height={360} loading="lazy"
                     className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                   <div className="absolute inset-0 bg-gradient-to-t from-navy/70 via-navy/10 to-transparent" aria-hidden="true" />
                   <span className="absolute bottom-3 left-3 bg-gold text-navy text-[11px] font-black rounded-lg px-2 py-1">

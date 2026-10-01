@@ -2,7 +2,7 @@
 // Run: npm run db:seed   (idempotent: wipes & rebuilds demo tables)
 import { PrismaClient } from '@prisma/client';
 import { createHash } from 'node:crypto';
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES, BRANDS, PRODUCTS } from './seed-data/products';
 import { SERVICES, TECHNICIANS, CUSTOMERS, REGIONS_CITIES, COUPONS, POPUPS, HERO_SLIDES, TESTIMONIALS, FAQS, BLOG_POSTS } from './seed-data/content';
@@ -19,33 +19,27 @@ const int = (min: number, max: number) => min + Math.floor(rnd() * (max - min + 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 const IMG_DIR = 'public/images/products';
-const GLYPHS: Record<string, string> = {
-  cable: 'M20 60 Q20 30 50 30 L150 30 M20 75 Q20 45 50 45 L150 45',
-  socket: 'M60 55 a6 6 0 1 0 0 .1 M140 55 a6 6 0 1 0 0 .1 M100 30 a70 70 0 1 0 0 140 a70 70 0 1 0 0-140',
-  breaker: 'M60 30 h80 v90 h-80 z M100 30 v90 M75 55 h15 M110 55 h15 M75 85 h15 M110 85 h15',
-  bulb: 'M100 30 a40 40 0 1 0 0 80 M85 110 h30 M88 122 h24 M90 134 h20 z',
-  solar: 'M40 110 L70 50 L160 50 L130 110 z M55 80 L85 80 M75 50 L55 110',
-  battery: 'M40 60 h100 v70 h-100 z M60 45 h25 v15 M110 45 h25 v15 M55 95 h70',
-  gen: 'M40 60 h90 v60 h-90 z M130 75 h25 v30 h-25 M60 120 a10 10 0 1 0 0 .1 M110 120 a10 10 0 1 0 0 .1',
-  tool: 'M50 130 L110 70 M100 60 a15 15 0 1 0 0 .1 M115 45 l25 25 -15 15 -25-25 z',
-  fan: 'M100 100 m-8 0 a8 8 0 1 0 16 0 a8 8 0 1 0 -16 0 M100 92 c-25 -35 10 -60 0 -60 M108 100 c35 -25 60 10 60 0 M100 108 c25 35 -10 60 0 60 M92 100 c-35 25 -60 -10 -60 0',
-  plug: 'M75 45 v30 M125 45 v30 M60 75 h80 v25 a40 40 0 0 1 -80 0 z',
-  cam: 'M40 60 h80 v45 h-80 z M120 70 l30 -15 v50 l-30 -15 M60 105 v20 M90 130 h30',
-  wifi: 'M100 125 a6 6 0 1 0 0 .1 M70 105 a45 45 0 0 1 60 0 M50 82 a75 75 0 0 1 100 0 M30 60 a105 105 0 0 1 140 0',
-  meter: 'M55 35 h90 v125 h-90 z M70 55 h60 v40 h-60 z M70 110 h15 M95 110 h15 M120 110 h10 M70 128 h60',
-};
-function productSvg(name: string, icon: string, variant: number): string {
-  const bg = variant === 0 ? ['#0B1B3A', '#123063'] : ['#0A2A6B', '#0A5CFF'];
-  const glyph = GLYPHS[icon] || GLYPHS.bulb;
-  const label = name.replace(/—.*$/, '').trim().slice(0, 46);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 200 150" role="img" aria-label="${label}">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${bg[0]}"/><stop offset="1" stop-color="${bg[1]}"/></linearGradient></defs>
-<rect width="200" height="150" fill="url(#g)"/>
-<g stroke="#FFB020" stroke-width="0.6" opacity="0.25" fill="none"><path d="M0 15 H40 V35 H80"/><path d="M200 130 H160 V110 H120"/><circle cx="40" cy="35" r="1.6" fill="#FFB020"/><circle cx="160" cy="110" r="1.6" fill="#FFB020"/></g>
-<g transform="translate(0,5)" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"><path d="${glyph}"/></g>
-<text x="100" y="143" text-anchor="middle" font-family="Manrope,Arial" font-size="6.5" fill="#FFB020">${label.slice(0, 60)}</text>
-<text x="6" y="12" font-family="Manrope,Arial" font-weight="700" font-size="7" fill="#FFF">Gabi<tspan fill="#FFB020">Electricals</tspan></text>
-</svg>`;
+// -- Real product photography ------------------------------------------------
+// All artwork is committed under public/images/** (see IMAGE_CREDITS.md).
+// The seed NEVER generates or deletes image files - it only references the
+// committed files and fails fast if any are missing.
+const missingImages: string[] = [];
+function productImage(slug: string, variant: 1 | 2 | 3): string {
+  const disk = `${IMG_DIR}/${slug}-${variant}.webp`;
+  if (!existsSync(disk)) missingImages.push(disk);
+  return `/images/products/${slug}-${variant}.webp`;
+}
+function serviceImage(slug: string): string {
+  const disk = `public/images/services/${slug}.webp`;
+  if (!existsSync(disk)) missingImages.push(disk);
+  return `/images/services/${slug}.webp`;
+}
+function requireImages(label: string) {
+  if (missingImages.length > 0) {
+    console.error(`IMG-CHECK ${label}: ${missingImages.length} image file(s) missing from the repo:\n  - ${missingImages.join('\n  - ')}`);
+    process.exit(4);
+  }
+  missingImages.length = 0;
 }
 
 async function main() {
@@ -57,9 +51,10 @@ async function main() {
   for (const m of [prisma.analyticsEvent, prisma.abandonedCart, prisma.supportTicket, prisma.warrantyRegistration, prisma.stockAlert, prisma.compareItem, prisma.wishlistItem, prisma.cartLine, prisma.referralVisit, prisma.payoutRequest, prisma.affiliateApplication, prisma.ledgerEntry, prisma.activityLog, prisma.notificationLog, prisma.uploadedFile, prisma.subscription, prisma.lead, prisma.popup, prisma.bundleItem, prisma.bundle, prisma.flashSale, prisma.coupon, prisma.paymentEvent, prisma.payment, prisma.paymentLink, prisma.quote, prisma.bookingEvent, prisma.booking, prisma.technician, prisma.blockedDate, prisma.slotCapacity, prisma.review, prisma.orderEvent, prisma.orderItem, prisma.order, prisma.deliveryZone, prisma.address, prisma.session, prisma.seoMeta, prisma.heroSlide, prisma.announcementBar, prisma.testimonial, prisma.faq, prisma.blogPost, prisma.setting, prisma.service, prisma.product, prisma.brand, prisma.category, prisma.user] as { deleteMany: (args?: never) => Promise<unknown> }[]) {
     await m.deleteMany();
   }
-  rmSync(IMG_DIR, { recursive: true, force: true });
   mkdirSync(IMG_DIR, { recursive: true });
   mkdirSync('public/images/hero', { recursive: true });
+  mkdirSync('public/images/services', { recursive: true });
+  mkdirSync('public/images/uploads', { recursive: true });
 
   // ── categories / brands ──
   const catIds: Record<string, string> = {};
@@ -77,13 +72,7 @@ async function main() {
   const prodIds: Record<string, string> = {};
   for (const p of PRODUCTS) {
     const slug = slugify(p.n);
-    const cat = CATEGORIES.find(c => c.slug === p.c)!;
-    const imgs: string[] = [];
-    for (let v = 0; v < 3; v++) {
-      const f = `${slug}-${v + 1}.svg`;
-      writeFileSync(`${IMG_DIR}/${f}`, productSvg(p.n, cat.icon, v));
-      imgs.push(`/images/products/${f}`);
-    }
+    const imgs: string[] = [productImage(slug, 1), productImage(slug, 2), productImage(slug, 3)];
     const r = await prisma.product.create({
       data: {
         slug, name: p.n, sku: `GE-${p.c.slice(0, 3).toUpperCase()}-${String(Object.keys(prodIds).length + 1001)}`,
@@ -101,21 +90,16 @@ async function main() {
     });
     prodIds[slug] = r.id;
   }
-  console.log(`  ✓ ${Object.keys(prodIds).length} products, images generated`);
+  requireImages('product images');
+  console.log(`  ✓ ${Object.keys(prodIds).length} products, images referenced`);
 
-  // ── hero images (generated brand art; see IMAGE_CREDITS.md) ──
-  const heros = [
-    ['hero-wiring', GLYPHS.cable, 'Certified wiring, genuine cable'],
-    ['hero-solar', GLYPHS.solar, 'Solar & backup power done right'],
-    ['hero-technician', GLYPHS.tool, 'NIET-certified electricians'],
-  ] as const;
-  for (const [name, g, cap] of heros) {
-    writeFileSync(`public/images/hero/${name}.svg`, `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 160 90"><defs><linearGradient id="h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1B3A"/><stop offset="1" stop-color="#0A5CFF"/></linearGradient></defs><rect width="160" height="90" fill="url(#h)"/><g transform="translate(30,10) scale(0.5)" fill="none" stroke="#FFB020" stroke-width="3" opacity="0.9"><path d="${g}"/></g><text x="80" y="82" text-anchor="middle" font-family="Manrope,Arial" font-size="5" fill="#fff">${cap}</text></svg>`);
-    writeFileSync(`public/images/hero/${name}.webp.svg`, ''); // path compat shim unused
+  // ── hero images (committed photography; see IMAGE_CREDITS.md) ──
+  for (const name of ['hero-wiring', 'hero-solar', 'hero-technician']) {
+    const disk = `public/images/hero/${name}.webp`;
+    if (!existsSync(disk)) missingImages.push(disk);
   }
-  // rewrite hero slide image paths to svg (webp is phase-7 upgrade when live photos are fetched)
-  const slidesFixed = HERO_SLIDES.map(h => ({ ...h, image: h.image.replace('.webp', '.svg') }));
-  for (const [i, h] of slidesFixed.entries()) {
+  requireImages('hero images');
+  for (const [i, h] of HERO_SLIDES.entries()) {
     await prisma.heroSlide.create({ data: { headline: h.headline, sub: h.sub, ctaLabel: h.cta, ctaHref: h.href, cta2Label: h.cta2 ?? null, cta2Href: h.href2 ?? null, image: h.image, badge: h.badge ?? null, sortOrder: i } });
   }
 
@@ -188,7 +172,7 @@ async function main() {
       const p = PRODUCTS.find(x => slugify(x.n) === pslug)!;
       const qty = int(1, 3);
       subtotal += p.p * qty;
-      items.push({ productId: prodIds[pslug], name: p.n, image: `/images/products/${pslug}-1.svg`, sku: `GE-${pslug.slice(0, 3).toUpperCase()}`, price: p.p, qty });
+      items.push({ productId: prodIds[pslug], name: p.n, image: `/images/products/${pslug}-1.webp`, sku: `GE-${pslug.slice(0, 3).toUpperCase()}`, price: p.p, qty });
     }
     const zone = pick(zones);
     const vat = +(subtotal * (15 / 115)).toFixed(2); // prices VAT-inclusive @15%
@@ -241,7 +225,7 @@ async function main() {
     { reference: 'GE_PAY_FAIL01', amount: 240, status: 'FAILED', method: 'MOMO_MTN', provider: 'MOCK', payerPhone: '+233240000001', metaJson: '{"reason":"Payer declined approval prompt"}' },
     { reference: 'GE_PAY_FAIL02', amount: 1180, status: 'FAILED', method: 'CARD', provider: 'MOCK', metaJson: '{"reason":"Insufficient funds"}' },
     { reference: 'GE_PAY_EXP01', amount: 565, status: 'EXPIRED', method: 'QR', provider: 'MOCK', expiresAt: new Date(now - 2 * DAY), metaJson: '{"reason":"QR 15-min window elapsed"}' },
-    { reference: 'GE_PAY_APP01', amount: 3850, status: 'AWAITING_APPROVAL', method: 'MANUAL_TRANSFER', provider: 'MOCK', payerEmail: 'niiayi@gmail.com', proofImage: '/images/uploads/transfer-proof-sample.svg', metaJson: '{"bank":"Ecobank","acct":"GE-9081"}' },
+    { reference: 'GE_PAY_APP01', amount: 3850, status: 'AWAITING_APPROVAL', method: 'MANUAL_TRANSFER', provider: 'MOCK', payerEmail: 'niiayi@gmail.com', proofImage: '/images/uploads/transfer-proof-sample.webp', metaJson: '{"bank":"Ecobank","acct":"GE-9081"}' },
   ] });
   console.log(`  ✓ ${orders.length} orders + payments in every status`);
 
@@ -249,10 +233,11 @@ async function main() {
   const svcIds: Record<string, string> = {};
   for (const [i, s] of SERVICES.entries()) {
     const r = await prisma.service.create({
-      data: { slug: s.slug, name: s.name, description: s.desc, shortDesc: s.desc.slice(0, 110) + '…', basePrice: s.base, depositPct: 30, durationMins: s.dur, image: `/images/hero/hero-technician.svg`, includes: JSON.stringify(s.includes), urgencyJson: JSON.stringify({ STANDARD: 0, URGENT: Math.round(s.base * 0.15), EMERGENCY: Math.round(s.base * 0.4) }), sortOrder: i },
+      data: { slug: s.slug, name: s.name, description: s.desc, shortDesc: s.desc.slice(0, 110) + '…', basePrice: s.base, depositPct: 30, durationMins: s.dur, image: serviceImage(s.slug), includes: JSON.stringify(s.includes), urgencyJson: JSON.stringify({ STANDARD: 0, URGENT: Math.round(s.base * 0.15), EMERGENCY: Math.round(s.base * 0.4) }), sortOrder: i },
     });
     svcIds[s.slug] = r.id;
   }
+  requireImages('service images');
   const slots = ['08:00-10:00', '10:00-12:00', '12:00-14:00', '14:00-16:00', '16:00-18:00'];
   const bStatus = [
     ...Array(4).fill('REQUESTED'), ...Array(4).fill('CONFIRMED'), ...Array(4).fill('ASSIGNED'),
@@ -425,7 +410,9 @@ async function main() {
     { code: 'DEP2026002', label: 'Booking GB-2026-2005 deposit', amount: 450, forType: 'BOOKING', status: 'ACTIVE', createdBy: techUsers[0].u.id },
     { code: 'QR2026003', label: 'In-person counter sale', amount: 0, forType: 'CUSTOM', status: 'PAID', createdBy: opsAdmin.id },
   ] });
-  await prisma.uploadedFile.create({ data: { path: '/images/uploads/transfer-proof-sample.svg', name: 'ecobank-transfer-receipt.svg', mime: 'image/svg+xml', size: 4800, kind: 'PROOF' } });
+  await prisma.uploadedFile.create({ data: { path: '/images/uploads/transfer-proof-sample.webp', name: 'ecobank-transfer-receipt.webp', mime: 'image/webp', size: 48000, kind: 'PROOF' } });
+  if (!existsSync('public/images/uploads/transfer-proof-sample.webp')) missingImages.push('public/images/uploads/transfer-proof-sample.webp');
+  requireImages('upload samples');
   mkdirSync('public/images/uploads', { recursive: true });
   console.log('  ✓ settings, notification log, activity log, leads, links');
 
