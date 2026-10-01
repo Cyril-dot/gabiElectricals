@@ -24,7 +24,7 @@ export function FloatingButtons({ phone, whatsapp }: { phone: string; whatsapp: 
       <span className="flex gap-[3px] opacity-0 hover:opacity-60 transition-opacity" aria-hidden="true">
         {[0, 1, 2].map(k => <span key={k} className="w-1 h-1 rounded-full bg-white/80" />)}
       </span>
-      <a
+      <a draggable={false}
         href={`https://wa.me/${tel(whatsapp).replace('+', '')}?text=${encodeURIComponent('Hello GabiElectricals! I need help with:')}`}
         target="_blank" rel="noopener noreferrer"
         className="rounded-full bg-[#25D366] text-white grid place-items-center shadow-pop hover:scale-110 hover:rotate-6 transition-transform duration-300 animate-scale-in"
@@ -33,7 +33,7 @@ export function FloatingButtons({ phone, whatsapp }: { phone: string; whatsapp: 
       >
         <Icon name="chat" size={25} />
       </a>
-      <a href={`tel:${tel(phone)}`} className="rounded-full bg-blue text-white grid place-items-center shadow-pop hover:scale-110 transition-transform duration-300 animate-scale-in" style={{ width: 52, height: 52, animationDelay: '0.1s' }} aria-label="Call now">
+      <a draggable={false} href={`tel:${tel(phone)}`} className="rounded-full bg-blue text-white grid place-items-center shadow-pop hover:scale-110 transition-transform duration-300 animate-scale-in" style={{ width: 52, height: 52, animationDelay: '0.1s' }} aria-label="Call now">
         <span className="animate-pulse-ring rounded-full grid place-items-center" style={{ width: 52, height: 52 }}>
           <Icon name="call" size={22} />
         </span>

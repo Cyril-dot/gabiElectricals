@@ -88,6 +88,12 @@ export function useDraggableFab(storageKey: string) {
     }
   }, []);
 
+  // Links are natively draggable — a native dragstart cancels the pointer
+  // gesture (pointercancel), which would kill our drag. Prevent it.
+  const onDragStart = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+  }, []);
+
   const style: React.CSSProperties | undefined = pos
     ? { left: pos.x, top: pos.y, right: 'auto', bottom: 'auto' }
     : undefined;
@@ -101,6 +107,7 @@ export function useDraggableFab(storageKey: string) {
       onPointerUp: endDrag,
       onPointerCancel: endDrag,
       onClickCapture,
+      onDragStart,
     },
   };
 }
