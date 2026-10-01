@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useCart } from '@/lib/cart-store';
 import { priceOrder } from '@/lib/pricing';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 import { ghs } from '@/lib/money';
 
 type Zone = { id: string; name: string; regions: string[]; fee: number; freeOver: number | null; etaDays: number };
@@ -139,7 +140,7 @@ export function CartClient({ tax, walletCredit, signedIn }: {
                   </td>
                   <td className="p-4 text-right font-extrabold whitespace-nowrap">{ghs((i.price * i.qty * (i.install ? 1.1 : 1)))}</td>
                   <td className="p-4 text-right">
-                    <button onClick={() => { remove(i.slug); toast('Item removed', 'info'); }} className="text-soft hover:text-danger p-2" aria-label={`Remove ${i.name} from cart`}>🗑</button>
+                    <button onClick={() => { remove(i.slug, i.install); toast('Item removed', 'info'); }} className="text-soft hover:text-danger p-2" aria-label={`Remove ${i.name} from cart`}><Icon name="delete" size={18} /></button>
                   </td>
                 </tr>
               );

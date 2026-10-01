@@ -9,7 +9,7 @@ type S = {
   open: boolean;
   add: (i: Omit<CartItem, 'qty'>, qty?: number) => void;
   setQty: (slug: string, qty: number, install?: boolean) => void;
-  remove: (slug: string) => void;
+  remove: (slug: string, install?: boolean) => void;
   clear: () => void;
   setOpen: (v: boolean) => void;
   count: () => number;
@@ -22,15 +22,19 @@ export const useCart = create<S>()(
       items: [],
       open: false,
       add: (i, qty = 1) => {
-        const items = [...get().items];
         const key = `${i.slug}:${i.install ? 'i' : 'n'}`;
-        const found = items.find(x => `${x.slug}:${x.install ? 'i' : 'n'}` === key);
-        if (found) found.qty = Math.min(found.qty + qty, found.stock || 99);
-        else items.push({ ...i, qty: Math.min(qty, i.stock || 99) });
+        const items = get().items.map(x =>
+          `${x.slug}:${x.install ? 'i' : 'n'}` === key
+            ? { ...x, qty: Math.min(x.qty + qty, x.stock || 99) }
+            : x
+        );
+        if (!items.some(x => `${x.slug}:${x.install ? 'i' : 'n'}` === key)) {
+          items.push({ ...i, qty: Math.min(qty, i.stock || 99) });
+        }
         set({ items, open: true });
       },
       setQty: (slug, qty, install = false) => set(s => ({ items: s.items.map(i => (i.slug === slug && !!i.install === install) ? { ...i, qty: Math.max(1, Math.min(qty, i.stock || 99)) } : i) })),
-      remove: (slug) => set(s => ({ items: s.items.filter(i => i.slug !== slug) })),
+      remove: (slug, install) => set(s => ({ items: s.items.filter(i => !(i.slug === slug && (install === undefined || !!i.install === !!install))) })),
       clear: () => set({ items: [] }),
       setOpen: v => set({ open: v }),
       count: () => get().items.reduce((n, i) => n + i.qty, 0),

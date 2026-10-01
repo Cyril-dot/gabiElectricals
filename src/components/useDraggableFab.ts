@@ -47,7 +47,8 @@ export function useDraggableFab(storageKey: string) {
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     const el = ref.current;
-    if (!el || (e.button !== undefined && e.button !== 0)) return;
+    if (!el) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     const r = el.getBoundingClientRect();
     drag.current = { sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, moved: false };
     try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}

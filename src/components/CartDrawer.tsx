@@ -50,7 +50,7 @@ export function CartDrawer() {
                       <span className="font-extrabold text-sm">{ghs((i.price * i.qty * (i.install ? 1.1 : 1)))}</span>
                     </div>
                   </div>
-                  <button onClick={() => remove(i.slug)} className="text-soft hover:text-danger self-start p-1" aria-label={`Remove ${i.name}`}><Icon name="delete" size={17} /></button>
+                  <button onClick={() => remove(i.slug, i.install)} className="text-soft hover:text-danger self-start p-1" aria-label={`Remove ${i.name}`}><Icon name="delete" size={17} /></button>
                 </div>
               ))}
             </div>
