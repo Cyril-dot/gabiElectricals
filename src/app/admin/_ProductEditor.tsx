@@ -235,7 +235,7 @@ export function ProductEditor({ init, cats, brands }: { init: ProductInit; cats:
             {([['featured', 'Featured'], ['bestSeller', 'Best seller'], ['isNew', 'New badge']] as const).map(([k, l]) => (
               <label key={k} className="flex cursor-pointer items-center justify-between rounded-xl border border-line px-3 py-2 text-sm font-bold">
                 {l}
-                <input type="checkbox" checked={f[k]} onChange={e => set(k)(e.target.checked)} className="h-4 w-4 accent-[#0A5CFF]" />
+                <input type="checkbox" checked={f[k]} onChange={e => set(k)(e.target.checked)} className="h-4 w-4 accent-[#1B1B1D]" />
               </label>
             ))}
           </section>

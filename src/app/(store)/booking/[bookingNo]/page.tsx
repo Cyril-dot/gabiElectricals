@@ -57,7 +57,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
   ]);
 
   const site = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-  const qr = await QRCode.toDataURL(`${site}/booking/${booking.bookingNo}`, { width: 220, margin: 2, color: { dark: '#0B1B3A', light: '#FFFFFF' } });
+  const qr = await QRCode.toDataURL(`${site}/booking/${booking.bookingNo}`, { width: 220, margin: 2, color: { dark: '#141311', light: '#FFFFFF' } });
 
   const media = parse<string[]>(booking.media, []);
   const currentIndex = booking.status === 'CANCELLED' ? -1 : CHAIN.indexOf(booking.status as (typeof CHAIN)[number]);

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ProductCard } from '@/components/ProductCard';
+import { Icon } from '@/components/Icon';
 import { Countdown } from '@/components/HomeHero';
 import { JSONLd } from '@/components/JsonLd';
 import { ghs } from '@/lib/money';
@@ -21,7 +22,7 @@ export default async function DealsPage() {
       <JSONLd data={{ '@context': 'https://schema.org', '@type': 'ItemList', name: 'GabiElectricals Deals', itemListElement: deals.map((d, i) => ({ '@type': 'ListItem', position: i + 1, name: d.product.name, url: `${process.env.NEXT_PUBLIC_SITE_URL}/product/${d.product.slug}` })) }} />
       <div className="text-center max-w-2xl mx-auto mb-10">
         <p className="text-gold font-black text-xs tracking-[0.3em] uppercase mb-2">Premium, priced honestly</p>
-        <h1 className="font-display font-extrabold text-4xl mb-3">⚡ Deals & Flash Sales</h1>
+        <h1 className="font-display font-extrabold text-4xl mb-3 inline-flex items-center gap-3"><Icon name="bolt" size={36} className="text-gold" /> Deals & Flash Sales</h1>
         <p className="text-soft">Time-limited pricing on genuine stock. When the timer ends, the price returns — because real copper and certified protection are never actually cheap.</p>
       </div>
 
@@ -53,7 +54,7 @@ export default async function DealsPage() {
                   <h3 className="font-display font-extrabold text-lg mb-1">{b.name}</h3>
                   <p className="text-sm text-soft mb-3">{b.description}</p>
                   <ul className="text-[13px] space-y-1 mb-4">
-                    {b.items.map(it => <li key={it.id} className="flex gap-2"><span className="text-success font-black">✓</span>{it.qty} × {it.product.name}</li>)}
+                    {b.items.map(it => <li key={it.id} className="flex gap-2"><Icon name="check_circle" size={15} className="text-success shrink-0 mt-0.5" />{it.qty} × {it.product.name}</li>)}
                   </ul>
                   <div className="flex items-baseline gap-3">
                     <span className="font-display font-extrabold text-2xl text-navy dark:text-white">{ghs(b.price)}</span>

@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from './Icon';
 
 type Msg = { me: boolean; text: string };
 
 export function ChatWidget({ whatsapp = '233241002030', phone = '+233 24 100 2030' }: { whatsapp?: string; phone?: string }) {
   const wa = `https://wa.me/${whatsapp.replace(/[^\d]/g, '')}`;
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState<Msg[]>([{ me: false, text: 'Hi! I’m Volt ⚡ — your GabiElectricals helper. Ask me about delivery, payments, warranties or which product fits. Type “human” for WhatsApp.' }]);
+  const [msgs, setMsgs] = useState<Msg[]>([{ me: false, text: 'Hi! I’m Volt — your GabiElectricals helper. Ask me about delivery, payments, warranties or which product fits. Type “human” for WhatsApp.' }]);
   const [input, setInput] = useState('');
   const [faqIndex, setFaqIndex] = useState<{ q: string; a: string }[] | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -49,11 +50,11 @@ export function ChatWidget({ whatsapp = '233241002030', phone = '+233 24 100 203
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Close chat assistant' : 'Open chat assistant'}
         className="fixed bottom-24 right-4 z-[65] w-12 h-12 rounded-full bg-blue text-white grid place-items-center shadow-pop text-xl hover:scale-105 transition-transform"
-      >{open ? '✕' : '💬'}</button>
+      ><Icon name={open ? 'close' : 'chat'} size={21} /></button>
       {open && (
-        <div className="fixed bottom-40 right-4 z-[65] w-[calc(100vw-2rem)] max-w-sm card shadow-pop flex flex-col overflow-hidden" role="dialog" aria-label="FAQ chat assistant">
+        <div className="fixed bottom-40 right-4 z-[65] w-[calc(100vw-2rem)] max-w-sm card shadow-pop flex flex-col overflow-hidden animate-scale-in origin-bottom-right" role="dialog" aria-label="FAQ chat assistant">
           <div className="bg-navy text-white px-4 py-3 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-full bg-gold text-navy grid place-items-center font-black">⚡</span>
+            <span className="w-8 h-8 rounded-full bg-gold text-navy grid place-items-center"><Icon name="bolt" size={17} /></span>
             <div><p className="font-bold text-sm leading-none">Volt — FAQ assistant</p><p className="text-[11px] text-white/60 mt-1">Instant answers, trained on our real policies</p></div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3 max-h-80 bg-mist/60 dark:bg-navy-700/40">
@@ -66,7 +67,7 @@ export function ChatWidget({ whatsapp = '233241002030', phone = '+233 24 100 203
           </div>
           <form className="flex gap-2 p-3 border-t border-line" onSubmit={e => { e.preventDefault(); send(); }}>
             <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask about delivery, MoMo, warranty…" aria-label="Message" className="flex-1 border border-line rounded-xl px-3 py-2.5 text-sm bg-mist dark:bg-navy-700 outline-none focus:border-blue" />
-            <button className="btn-primary !px-4 !py-2 text-sm">Send</button>
+            <button className="btn-primary !px-4 !py-2 text-sm" aria-label="Send message"><Icon name="send" size={16} /></button>
           </form>
         </div>
       )}

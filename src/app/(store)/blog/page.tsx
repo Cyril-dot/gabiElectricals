@@ -22,7 +22,7 @@ export default async function BlogPage() {
         {posts.map(p => (
           <Link key={p.id} href={`/blog/${p.slug}`} className="card overflow-hidden group hover:-translate-y-1 hover:border-blue transition-all">
             <div className="h-36 bg-navy relative overflow-hidden">
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 30% 40%, #0A5CFF, transparent 60%)' }} aria-hidden="true" />
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 30% 40%, #1B1B1D, transparent 60%)' }} aria-hidden="true" />
               <p className="absolute inset-x-4 bottom-3 text-gold font-black text-[10px] tracking-[0.25em] uppercase">{tagsOf(p.tags)[0] ?? 'Guide'}</p>
               <p className="absolute top-3 right-3 text-[11px] text-white/60">{p.publishedAt.toDateString()}</p>
             </div>

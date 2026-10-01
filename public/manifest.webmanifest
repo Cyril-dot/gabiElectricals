@@ -1,12 +1,17 @@
 {
-  "name": "GabiElectricals — Premium Power",
+  "name": "GabiElectricals \u2014 Premium Power",
   "short_name": "GabiElec",
   "description": "Genuine electrical products and certified electricians across Ghana.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0B1B3A",
-  "theme_color": "#0A5CFF",
+  "background_color": "#141311",
+  "theme_color": "#D7FF3E",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "/images/brand/logo-mark.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
   ]
 }

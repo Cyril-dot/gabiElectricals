@@ -19,7 +19,7 @@ export default async function BusinessQrPage() {
   }
 
   const url = `${origin}/pay/${link.code}`;
-  const dataUrl = await QRCode.toDataURL(url, { width: 640, margin: 2, color: { dark: '#0B1B3A', light: '#FFFFFF' } });
+  const dataUrl = await QRCode.toDataURL(url, { width: 640, margin: 2, color: { dark: '#141311', light: '#FFFFFF' } });
 
   return (
     <div className="min-h-dvh bg-mist dark:bg-navy flex flex-col">

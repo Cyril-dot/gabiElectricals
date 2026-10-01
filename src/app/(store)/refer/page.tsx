@@ -17,7 +17,7 @@ export default async function ReferPage() {
   let stats = null;
   if (user) {
     link = `${SITE}/r/${user.referralCode}`;
-    qr = await QRCode.toDataURL(link, { margin: 1, width: 220, color: { dark: '#0B1B3A', light: '#FFFFFF' } }).catch(() => '');
+    qr = await QRCode.toDataURL(link, { margin: 1, width: 220, color: { dark: '#141311', light: '#FFFFFF' } }).catch(() => '');
     const [visits, ledger, wallet] = await Promise.all([
       prisma.referralVisit.count({ where: { referrerId: user.id } }),
       prisma.ledgerEntry.aggregate({ where: { userId: user.id, reason: 'REFERRAL_BONUS' }, _sum: { amount: true } }),

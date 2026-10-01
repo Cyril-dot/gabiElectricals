@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { ProductCard, type CardProduct } from '@/components/ProductCard';
 import { JSONLd } from '@/components/JsonLd';
 import { FadeUp } from '@/components/FadeUp';
+import { Icon } from '@/components/Icon';
 import { jsonArr } from '@/lib/ghana';
 
 export const dynamic = 'force-dynamic';
@@ -231,7 +232,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
               <option value="24">24 months+</option>
             </select>
             <label className="flex items-center gap-2 text-sm font-bold pt-1 cursor-pointer min-h-[40px]">
-              <input type="checkbox" name="stock" value="1" defaultChecked={s(sp, 'stock') === '1'} className="w-4 h-4 accent-[#0A5CFF]" />
+              <input type="checkbox" name="stock" value="1" defaultChecked={s(sp, 'stock') === '1'} className="w-4 h-4 accent-[#1B1B1D]" />
               In stock only
             </label>
             <button className="btn-primary w-full !py-2.5 text-sm mt-1">Apply filters</button>
@@ -245,7 +246,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         <section aria-label="Product results">
           {cards.length === 0 ? (
             <div className="card p-10 text-center">
-              <p className="text-5xl mb-3">🔌</p>
+              <span className="grid place-items-center w-16 h-16 rounded-2xl bg-mist dark:bg-navy-700 text-soft mb-3 mx-auto"><Icon name="search" size={30} /></span>
               <h2 className="font-display font-extrabold text-xl mb-2">Nothing matches — yet.</h2>
               <p className="text-sm text-soft mb-5 max-w-sm mx-auto">Try widening the price range or clearing filters. Can&apos;t find it? We source it — most special orders land within a week.</p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -265,7 +266,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
           {pages > 1 && (
             <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 mt-8">
-              {page > 1 && <Link href={pageHref(page - 1)} className="btn-ghost !px-3.5 !py-2 text-sm">←</Link>}
+              {page > 1 && <Link href={pageHref(page - 1)} className="btn-ghost !px-3.5 !py-2 text-sm" aria-label="Previous page"><Icon name="arrow_back" size={16} /></Link>}
               {Array.from({ length: pages }, (_, i) => i + 1)
                 .filter(n => n === 1 || n === pages || Math.abs(n - page) <= 2)
                 .map((n, idx, arr) => (
@@ -275,7 +276,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
                       className={`min-w-[44px] min-h-[44px] grid place-items-center rounded-xl text-sm font-bold border ${n === page ? 'bg-blue text-white border-blue' : 'border-line hover:border-blue'}`}>{n}</Link>
                   </span>
                 ))}
-              {page < pages && <Link href={pageHref(page + 1)} className="btn-ghost !px-3.5 !py-2 text-sm">→</Link>}
+              {page < pages && <Link href={pageHref(page + 1)} className="btn-ghost !px-3.5 !py-2 text-sm" aria-label="Next page"><Icon name="arrow_forward" size={16} /></Link>}
             </nav>
           )}
         </section>

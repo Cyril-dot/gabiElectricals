@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import { Manrope, Plus_Jakarta_Sans } from 'next/font/google';
+import { Manrope, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
-const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta', display: 'swap', weight: ['600', '700', '800'] });
+const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-grotesk', display: 'swap', weight: ['500', '600', '700'] });
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
@@ -16,10 +16,10 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image', title: 'GabiElectricals Ghana', description: 'Premium electrical products & certified electricians.' },
   robots: { index: true, follow: true },
   manifest: '/manifest.webmanifest',
-  icons: { icon: '/icon.svg' },
+  icons: { icon: '/images/brand/logo-mark.webp', apple: '/images/brand/logo-mark.webp' },
 };
 
-export const viewport: Viewport = { themeColor: '#0A5CFF', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#141311', width: 'device-width', initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.theme==='dark'||(!localStorage.theme&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}` }} />
       </head>
-      <body className={`${manrope.variable} ${jakarta.variable} font-sans min-h-dvh flex flex-col`}>
+      <body className={`${manrope.variable} ${grotesk.variable} font-sans min-h-dvh flex flex-col`}>
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-blue focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">Skip to content</a>
         <ToastProvider>
           {children}

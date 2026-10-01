@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 import { ghs } from '@/lib/money';
 
 type Svc = { slug: string; name: string; base: number; dur: number; image: string | null; shortDesc: string };
@@ -504,7 +505,7 @@ export default function BookWizard({ initialService, services, business }: { ini
             ? <button type="button" onClick={() => setStep(s => s - 1)} className="btn-ghost px-5 py-2.5 text-[14px]">← Back</button>
             : <Link href="/services" className="btn-ghost px-5 py-2.5 text-[14px]">Browse services</Link>}
           {step < 5
-            ? <button type="button" onClick={() => { if (validateStep()) setStep(s => s + 1); }} className="btn-primary px-6 py-2.5 text-[14px]">Continue →</button>
+            ? <button type="button" onClick={() => { if (validateStep()) setStep(s => s + 1); }} className="btn-primary px-6 py-2.5 text-[14px] link-nudge">Continue <Icon name="arrow_forward" size={17} /></button>
             : <button type="button" onClick={onSubmit} disabled={submitting || !est}
                 className="btn-gold px-6 py-3 text-[15px] min-w-[180px]">
                 {submitting ? 'Creating booking…' : urgency === 'EMERGENCY' ? '🚨 Confirm emergency booking' : 'Confirm booking'}
@@ -514,7 +515,7 @@ export default function BookWizard({ initialService, services, business }: { ini
 
       {/* Trust strip */}
       <div className="mt-5 grid grid-cols-3 gap-2 text-center text-[11px] font-bold text-soft">
-        <span>✓ Certified techs</span><span>✓ Warranty included</span><span>✓ No hidden charges</span>
+        <span className="inline-flex items-center gap-1"><Icon name="check_circle" size={14} className="text-success" /> Certified techs</span><span className="inline-flex items-center gap-1"><Icon name="check_circle" size={14} className="text-success" /> Warranty included</span><span className="inline-flex items-center gap-1"><Icon name="check_circle" size={14} className="text-success" /> No hidden charges</span>
       </div>
     </div>
   );

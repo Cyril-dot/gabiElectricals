@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import Link from 'next/link';
 import { Logo } from './Logo';
+import { Icon } from './Icon';
 import { NewsletterForm } from './NewsletterForm';
 
 const PAY = ['MTN MoMo', 'Telecel Cash', 'AT Money', 'Visa', 'Mastercard', 'GhIPSS', 'QR Pay'];
@@ -30,7 +31,7 @@ export async function Footer() {
           <h3 className="font-display font-extrabold text-white mb-4 text-sm uppercase tracking-wider">Shop</h3>
           <ul className="space-y-2 text-sm">
             {cats.slice(0, 8).map(c => <li key={c.slug}><Link href={`/shop?cat=${c.slug}`} className="hover:text-gold">{c.name}</Link></li>)}
-            <li><Link href="/shop" className="hover:text-gold font-semibold text-gold">All categories →</Link></li>
+            <li><Link href="/shop" className="hover:text-gold font-semibold text-gold inline-flex items-center gap-1 link-nudge">All categories <Icon name="arrow_forward" size={14} /></Link></li>
           </ul>
         </nav>
         <nav aria-label="Services & company">
@@ -48,12 +49,12 @@ export async function Footer() {
         </nav>
         <div>
           <h3 className="font-display font-extrabold text-white mb-4 text-sm uppercase tracking-wider">Reach us</h3>
-          <address className="not-italic text-sm space-y-2 text-white/75">
-            <p>{biz.address}</p>
-            <p>Ghana Post GPS: <span className="font-mono text-gold">{biz.gps}</span></p>
-            <p><a href={`tel:${biz.phone.replace(/\s/g, '')}`} className="hover:text-gold font-semibold">{biz.phone}</a></p>
-            <p><a href={`mailto:${biz.email}`} className="hover:text-gold">{biz.email}</a></p>
-            <p>{biz.hours}</p>
+          <address className="not-italic text-sm space-y-2.5 text-white/75">
+            <p className="flex gap-2"><Icon name="location_on" size={16} className="text-gold shrink-0 mt-0.5" />{biz.address}</p>
+            <p className="flex gap-2 items-center"><Icon name="my_location" size={16} className="text-gold shrink-0" /><span>Ghana Post GPS: <span className="font-mono text-gold">{biz.gps}</span></span></p>
+            <p><a href={`tel:${biz.phone.replace(/\s/g, '')}`} className="hover:text-gold font-semibold flex gap-2 items-center transition-colors"><Icon name="call" size={16} className="text-gold shrink-0" />{biz.phone}</a></p>
+            <p><a href={`mailto:${biz.email}`} className="hover:text-gold flex gap-2 items-center transition-colors"><Icon name="mail" size={16} className="text-gold shrink-0" />{biz.email}</a></p>
+            <p className="flex gap-2 items-center"><Icon name="schedule" size={16} className="text-gold shrink-0" />{biz.hours}</p>
           </address>
           <div className="mt-5"><NewsletterForm /></div>
         </div>

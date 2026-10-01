@@ -31,7 +31,7 @@ export default async function AccountReferrals() {
   const site = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   const link = `${site}/r/${user.referralCode}`;
   const shareText = `Hey! It's ${user.name.split(' ')[0]} 👋\n\nI found a place in Ghana that sells *genuine* electricals — pure copper cables, real breakers, same-day Accra delivery — AND their electricians are certified.\n\nUse my link and we BOTH get ${ghs(settings.referral.friendReward)} off / credit:\n${link}`;
-  const qr = await QRCode.toDataURL(link, { width: 200, margin: 2, color: { dark: '#0B1B3A', light: '#FFFFFF' } });
+  const qr = await QRCode.toDataURL(link, { width: 200, margin: 2, color: { dark: '#141311', light: '#FFFFFF' } });
 
   return (
     <section aria-label="Referrals and wallet" className="space-y-5">

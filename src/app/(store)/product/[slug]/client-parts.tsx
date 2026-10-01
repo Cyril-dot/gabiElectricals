@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useCart } from '@/lib/cart-store';
 import { useToast } from '@/components/Toast';
+import { Icon } from '@/components/Icon';
 import { Stars } from '@/components/ProductCard';
 import { ghs } from '@/lib/money';
 
@@ -90,7 +91,7 @@ export function PurchasePanel({ p, whatsapp }: {
       </div>
 
       <label className="flex items-start gap-2.5 border border-line rounded-xl p-3 cursor-pointer hover:border-blue transition-colors">
-        <input type="checkbox" checked={install} onChange={e => setInstall(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#0A5CFF]" />
+        <input type="checkbox" checked={install} onChange={e => setInstall(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#1B1B1D]" />
         <span className="text-sm">
           <span className="font-bold">Add professional installation</span>
           <span className="block text-[12.5px] text-soft mt-0.5">+10% — a certified NIET electrician fits it for you, tested and documented. Popular in Accra & Kumasi.</span>
@@ -98,15 +99,15 @@ export function PurchasePanel({ p, whatsapp }: {
       </label>
 
       <div className="grid sm:grid-cols-2 gap-2.5">
-        <button onClick={doAdd} className="btn-primary !py-3.5 min-h-[48px]">🛒 Add to cart</button>
+        <button onClick={doAdd} className="btn-primary !py-3.5 min-h-[48px]"><Icon name="add_shopping_cart" size={18} /> Add to cart</button>
         <button onClick={() => { add({ slug: p.slug, name: p.name, price: p.price, image, stock: p.stock, install }, qty); router.push('/checkout'); }}
-          className="btn-gold !py-3.5 min-h-[48px]">⚡ Buy now — checkout</button>
+          className="btn-gold !py-3.5 min-h-[48px]"><Icon name="bolt" size={18} /> Buy now — checkout</button>
       </div>
 
       <div className="grid grid-cols-2 gap-2.5">
         <a href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hello GabiElectricals, I have a question about "${p.name}" (${ghs(p.price)}) — see /product/${p.slug}`)}`}
           target="_blank" rel="noopener noreferrer" className="btn-ghost !py-3 text-sm min-h-[44px] justify-center">
-          💬 Ask on WhatsApp
+          <Icon name="chat" size={17} /> Ask on WhatsApp
         </a>
         <ShareButtons name={p.name} slug={p.slug} />
       </div>
@@ -140,7 +141,7 @@ export function NotifyMe({ slug, name }: { slug: string; name: string }) {
       <p className="font-bold text-warning mb-1">😴 Out of stock — we restock weekly</p>
       <p className="text-sm text-soft mb-3">Leave your email and we will alert you the moment {name.split('—')[0].trim()} lands.</p>
       {done ? (
-        <p className="text-sm font-bold text-success">✓ You are on the list — we will notify you first.</p>
+        <p className="text-sm font-bold text-success inline-flex items-center gap-1.5"><Icon name="check_circle" size={16} /> You are on the list — we will notify you first.</p>
       ) : (
         <form onSubmit={async e => {
           e.preventDefault();

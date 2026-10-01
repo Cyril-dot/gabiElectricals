@@ -6,6 +6,7 @@ import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
 import { margin } from '@/lib/pricing';
 import { JSONLd } from '@/components/JsonLd';
+import { Icon } from '@/components/Icon';
 import { Stars, ProductCard, type CardProduct } from '@/components/ProductCard';
 import { FadeUp } from '@/components/FadeUp';
 import { jsonArr, waDigits } from '@/lib/ghana';
@@ -119,7 +120,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         <div>
           <div className="flex flex-wrap gap-1.5 mb-2">
-            {badges.map(b => <span key={b} className="text-[11px] font-black text-success bg-success/10 rounded-md px-2 py-1">✓ {b}</span>)}
+            {badges.map(b => <span key={b} className="text-[11px] font-black text-success bg-success/10 rounded-md px-2 py-1 inline-flex items-center gap-1"><Icon name="check_circle" size={12} /> {b}</span>)}
             {product.isNew && <span className="text-[11px] font-black text-white bg-blue rounded-md px-2 py-1">NEW</span>}
             {product.bestSeller && <span className="text-[11px] font-black text-navy bg-gold rounded-md px-2 py-1">BEST SELLER</span>}
           </div>
@@ -136,9 +137,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {product.stock > 5 ? (
             <p className="text-sm font-bold text-success mb-4" role="status">● In stock — {product.stock}+ units at our Accra warehouse</p>
           ) : product.stock > 0 ? (
-            <p className="text-sm font-bold text-warning mb-4" role="status">⚡ Only {product.stock} left — restock takes 2–3 weeks, buy now</p>
+            <p className="text-sm font-bold text-warning mb-4 inline-flex items-center gap-1.5" role="status"><Icon name="bolt" size={16} /> Only {product.stock} left — restock takes 2–3 weeks, buy now</p>
           ) : (
-            <p className="text-sm font-bold text-danger mb-4" role="status">✕ Out of stock — join the notify list below</p>
+            <p className="text-sm font-bold text-danger mb-4 inline-flex items-center gap-1.5" role="status"><Icon name="cancel" size={16} /> Out of stock — join the notify list below</p>
           )}
 
           <PurchasePanel
@@ -149,7 +150,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* warranty + trust */}
           <div className="mt-5 card p-4 grid sm:grid-cols-2 gap-3 text-[13px]">
             <div className="flex gap-2.5 items-start">
-              <span className="text-xl" aria-hidden>🛡️</span>
+              <Icon name="shield" size={22} className="text-blue" />
               <p><span className="font-bold">Warranty: </span>
                 {product.warrantyMonths > 0
                   ? `${product.warrantyMonths} months on this ${product.name.split('—')[0].trim()} — register at pickup, claim through us, not the importer.`
@@ -157,7 +158,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </p>
             </div>
             <div className="flex gap-2.5 items-start">
-              <span className="text-xl" aria-hidden>🚚</span>
+              <Icon name="local_shipping" size={22} className="text-blue" />
               <p><span className="font-bold">Delivery: </span>same-day in Accra before 2PM · 1–3 days to Kumasi, Takoradi, Tamale. Or pick up at {settings.business.address}.</p>
             </div>
           </div>
@@ -212,7 +213,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </tbody>
           </table>
           <a href={`https://wa.me/${wa}?text=${encodeURIComponent(`Hello GabiElectricals — technical question about "${product.name}" (${product.sku}).`)}`}
-            target="_blank" rel="noopener noreferrer" className="btn-ghost w-full !py-3 text-sm mt-3">👷 Ask our technician a spec question</a>
+            target="_blank" rel="noopener noreferrer" className="btn-ghost w-full !py-3 text-sm mt-3"><Icon name="engineering" size={17} /> Ask our technician a spec question</a>
         </section>
       </div>
 
@@ -237,7 +238,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   </div>
                   <div className="flex items-center gap-2">
                     <Stars r={r.rating} />
-                    {r.verified && <span className="text-[10.5px] font-black text-success bg-success/10 rounded-md px-1.5 py-1">✓ VERIFIED PURCHASE</span>}
+                    {r.verified && <span className="text-[10.5px] font-black text-success bg-success/10 rounded-md px-1.5 py-1 inline-flex items-center gap-1"><Icon name="verified" size={12} /> VERIFIED PURCHASE</span>}
                   </div>
                 </div>
                 <h3 className="font-bold text-[14px] mt-2.5">{r.title}</h3>
@@ -254,7 +255,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <section aria-labelledby="rel-h" className="mt-12">
           <div className="flex items-baseline justify-between mb-4">
             <h2 id="rel-h" className="font-display text-xl font-extrabold">More in {product.category.name}</h2>
-            <Link href={`/shop?cat=${product.category.slug}`} className="text-sm font-bold text-blue hover:underline">See all →</Link>
+            <Link href={`/shop?cat=${product.category.slug}`} className="text-sm font-bold text-blue hover:underline inline-flex items-center gap-1 link-nudge">See all <Icon name="arrow_forward" size={15} /></Link>
           </div>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             {relatedCards.map((p, i) => (

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { ghs } from '@/lib/money';
 import { JSONLd } from '@/components/JsonLd';
 import { getSettings } from '@/lib/settings';
+import { Icon } from '@/components/Icon';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,9 +46,9 @@ export default async function ServicesPage() {
             and a written warranty on every job across Greater Accra, Kumasi, Takoradi and Tamale.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold">✓ Certified Electricians</span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold">🛡 Warranty Included</span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold">⚡ Same-day slots in Accra</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold"><Icon name="verified" size={15} className="text-gold" /> Certified Electricians</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold"><Icon name="workspace_premium" size={15} className="text-gold" /> Warranty Included</span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-bold"><Icon name="bolt" size={15} className="text-gold" /> Same-day slots in Accra</span>
           </div>
         </div>
       </section>
@@ -59,7 +60,7 @@ export default async function ServicesPage() {
           {services.map(s => {
             const includes = parse<string[]>(s.includes, []).slice(0, 3);
             return (
-              <article key={s.id} className="card overflow-hidden flex flex-col group hover:shadow-pop transition-shadow">
+              <article key={s.id} className="card lift overflow-hidden flex flex-col group">
                 <Link href={`/services/${s.slug}`} aria-label={`View ${s.name} details`} className="relative block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={s.image ?? '/images/hero/hero-technician.webp'} alt={s.name} width={640} height={360} loading="lazy"
@@ -68,8 +69,8 @@ export default async function ServicesPage() {
                   <span className="absolute bottom-3 left-3 bg-gold text-navy text-[11px] font-black rounded-lg px-2 py-1">
                     From {ghs(s.basePrice, { cents: false })}
                   </span>
-                  <span className="absolute bottom-3 right-3 bg-white/90 text-navy text-[11px] font-bold rounded-lg px-2 py-1">
-                    ⏱ {s.durationMins >= 60 ? `${Math.round(s.durationMins / 60)} hr${s.durationMins >= 120 ? 's' : ''}` : `${s.durationMins} min`} typical
+                  <span className="absolute bottom-3 right-3 bg-white/90 text-navy text-[11px] font-bold rounded-lg px-2 py-1 inline-flex items-center gap-1">
+                    <Icon name="schedule" size={13} /> {s.durationMins >= 60 ? `${Math.round(s.durationMins / 60)} hr${s.durationMins >= 120 ? 's' : ''}` : `${s.durationMins} min`} typical
                   </span>
                 </Link>
                 <div className="p-4 md:p-5 flex flex-col flex-1">
@@ -78,7 +79,7 @@ export default async function ServicesPage() {
                   </h3>
                   <p className="mt-1.5 text-[13px] text-soft line-clamp-2">{s.shortDesc ?? s.description}</p>
                   <ul className="mt-3 space-y-1 text-[12.5px] text-ink/80 flex-1">
-                    {includes.map(i => <li key={i} className="flex gap-1.5"><span className="text-success font-bold" aria-hidden="true">✓</span>{i}</li>)}
+                    {includes.map(i => <li key={i} className="flex gap-1.5"><Icon name="check_circle" size={15} className="text-success shrink-0 mt-[1px]" />{i}</li>)}
                   </ul>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <span className="text-[10px] font-black uppercase tracking-wide text-success bg-success/10 rounded-md px-1.5 py-0.5">Certified Electricians</span>
