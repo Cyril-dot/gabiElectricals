@@ -1,9 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Icon } from './Icon';
+import { useDraggableFab } from './useDraggableFab';
 
 export function FloatingButtons({ phone, whatsapp }: { phone: string; whatsapp: string }) {
   const [show, setShow] = useState(false);
+  const fab = useDraggableFab('gabi-fab-pos');
   useEffect(() => {
     const t = setTimeout(() => setShow(true), 1200);
     return () => clearTimeout(t);
@@ -11,7 +13,17 @@ export function FloatingButtons({ phone, whatsapp }: { phone: string; whatsapp: 
   if (!show) return null;
   const tel = (n: string) => n.replace(/\s/g, '');
   return (
-    <div className="fixed bottom-4 left-4 z-[60] flex flex-col gap-2.5" aria-label="Quick contact">
+    <div
+      ref={fab.ref}
+      style={fab.style}
+      {...fab.dragHandlers}
+      title="Drag to move"
+      className="fixed bottom-4 left-4 z-[60] flex flex-col items-center gap-2.5 cursor-grab active:cursor-grabbing touch-none select-none"
+      aria-label="Quick contact — drag to reposition"
+    >
+      <span className="flex gap-[3px] opacity-0 hover:opacity-60 transition-opacity" aria-hidden="true">
+        {[0, 1, 2].map(k => <span key={k} className="w-1 h-1 rounded-full bg-white/80" />)}
+      </span>
       <a
         href={`https://wa.me/${tel(whatsapp).replace('+', '')}?text=${encodeURIComponent('Hello GabiElectricals! I need help with:')}`}
         target="_blank" rel="noopener noreferrer"

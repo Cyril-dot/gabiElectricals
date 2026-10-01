@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
+import { useDraggableFab } from './useDraggableFab';
 
 type Msg = { me: boolean; text: string };
 
@@ -10,6 +11,7 @@ export function ChatWidget({ whatsapp = '233241002030', phone = '+233 24 100 203
   const [msgs, setMsgs] = useState<Msg[]>([{ me: false, text: 'Hi! I’m Volt — your GabiElectricals helper. Ask me about delivery, payments, warranties or which product fits. Type “human” for WhatsApp.' }]);
   const [input, setInput] = useState('');
   const [faqIndex, setFaqIndex] = useState<{ q: string; a: string }[] | null>(null);
+  const fab = useDraggableFab('gabi-chat-fab-pos');
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, open]);
   useEffect(() => {
@@ -46,11 +48,20 @@ export function ChatWidget({ whatsapp = '233241002030', phone = '+233 24 100 203
 
   return (
     <>
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-label={open ? 'Close chat assistant' : 'Open chat assistant'}
-        className="fixed bottom-24 right-4 z-[65] w-12 h-12 rounded-full bg-blue text-white grid place-items-center shadow-pop text-xl hover:scale-105 transition-transform"
-      ><Icon name={open ? 'close' : 'chat'} size={21} /></button>
+      <div
+        ref={fab.ref}
+        style={fab.style}
+        {...fab.dragHandlers}
+        title="Drag to move"
+        className="fixed bottom-24 right-4 z-[65] cursor-grab active:cursor-grabbing touch-none select-none"
+        aria-label="Chat assistant toggle — drag to reposition"
+      >
+        <button
+          onClick={() => setOpen(o => !o)}
+          aria-label={open ? 'Close chat assistant' : 'Open chat assistant'}
+          className="w-12 h-12 rounded-full bg-blue text-white grid place-items-center shadow-pop text-xl hover:scale-105 transition-transform"
+        ><Icon name={open ? 'close' : 'chat'} size={21} /></button>
+      </div>
       {open && (
         <div className="fixed bottom-40 right-4 z-[65] w-[calc(100vw-2rem)] max-w-sm card shadow-pop flex flex-col overflow-hidden animate-scale-in origin-bottom-right" role="dialog" aria-label="FAQ chat assistant">
           <div className="bg-navy text-white px-4 py-3 flex items-center gap-2">
