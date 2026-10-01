@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const p = await prisma.product.findUnique({ where: { slug }, select: { metaTitle: true, metaDescription: true, name: true, images: true, status: true } });
   if (!p) return { title: 'Product not found' };
   return {
-    title: p.metaTitle ?? `${p.name} Ghana | GabiElectricals`,
+    title: p.metaTitle ?? `${p.name} — Buy Online in Ghana`,
     description: p.metaDescription ?? `Buy ${p.name} — genuine, warranty-backed, delivered in Ghana.`,
     openGraph: { title: p.name, description: p.metaDescription ?? undefined, images: jsonArr<string>(p.images).slice(0, 1) },
   };

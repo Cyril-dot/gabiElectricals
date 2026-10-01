@@ -123,7 +123,6 @@ export default function LoginPage() {
         <p className="text-sm text-soft mt-5 text-center">
           New to GabiElectricals? <Link href="/register" className="font-bold text-blue hover:underline">Create an account</Link>
         </p>
-        <p className="text-[11.5px] text-soft mt-3 text-center">Demo logins: see the console output of <code className="bg-mist dark:bg-navy-700 px-1 rounded">npm run db:seed</code> — e.g. kofiowusu0@gmail.com / Demo1234!</p>
       </div>
     </div>
   );

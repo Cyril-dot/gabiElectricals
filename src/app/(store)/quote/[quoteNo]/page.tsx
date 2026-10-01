@@ -14,7 +14,7 @@ type Props = { params: Promise<{ quoteNo: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { quoteNo } = await params;
-  return { title: `Quote ${quoteNo} | GabiElectricals`, description: 'Review, accept and pay your GabiElectricals quote.' };
+  return { title: `Quote ${quoteNo}`, description: 'Review, accept and pay your GabiElectricals quote.' };
 }
 
 const BADGE: Record<string, string> = {

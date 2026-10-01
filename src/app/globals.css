@@ -121,13 +121,6 @@ h1, h2, h3, .font-display {
   &:hover { border-color: var(--color-blue); color: var(--color-blue); }
 }
 
-.skeleton {
-  background: linear-gradient(90deg, var(--color-mist) 25%, var(--color-line) 50%, var(--color-mist) 75%);
-  background-size: 200% 100%;
-  animation: var(--animate-shimmer);
-  border-radius: 8px;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   html { scroll-behavior: auto; }
@@ -139,6 +132,10 @@ h1, h2, h3, .font-display {
 }
 
 /* ── Revamp: motion + polish utilities ── */
+/* NOTE: component classes live in @layer components so Tailwind utilities
+   (e.g. lg:hidden) win on equal specificity. Unlayered rules beat layered
+   ones, which previously kept the mobile hamburger visible on desktop. */
+@layer components {
 
 /* Staggered entrance: children animate in sequence via --d delay */
 .stagger > * {
@@ -174,6 +171,15 @@ h1, h2, h3, .font-display {
 
 /* Soft section divider glow */
 .glow-line { height: 1px; background: linear-gradient(90deg, transparent, var(--color-line) 20%, var(--color-line) 80%, transparent); }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-mist) 25%, var(--color-line) 50%, var(--color-mist) 75%);
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+  border-radius: 8px;
+}
+
+} /* @layer components */
 
 ::selection { background: var(--color-volt); color: #062E33; }
 

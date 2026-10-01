@@ -19,7 +19,7 @@ export function useDraggableFab(storageKey: string) {
     }
   });
   const posRef = useRef<Pos | null>(pos);
-  const drag = useRef<{ sx: number; sy: number; ox: number; oy: number; moved: boolean } | null>(null);
+  const drag = useRef<{ sx: number; sy: number; ox: number; oy: number; pid: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
 
   const clamp = useCallback((x: number, y: number) => {
@@ -49,18 +49,23 @@ export function useDraggableFab(storageKey: string) {
     const el = ref.current;
     if (!el) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // NOTE: do NOT setPointerCapture here — capturing on pointerdown retargets
+    // the following click to this container, which would break taps on the
+    // buttons/links inside. Capture starts only once a real drag begins.
     const r = el.getBoundingClientRect();
-    drag.current = { sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, moved: false };
-    try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch {}
+    drag.current = { sx: e.clientX, sy: e.clientY, ox: r.left, oy: r.top, pid: e.pointerId, moved: false };
   }, []);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     const d = drag.current;
-    if (!d) return;
+    if (!d || e.pointerId !== d.pid) return;
     const dx = e.clientX - d.sx;
     const dy = e.clientY - d.sy;
     if (!d.moved && Math.hypot(dx, dy) < 8) return;
-    d.moved = true;
+    if (!d.moved) {
+      d.moved = true;
+      try { ref.current?.setPointerCapture(d.pid); } catch { /* noop */ }
+    }
     const p = clamp(d.ox + dx, d.oy + dy);
     posRef.current = p;
     setPos(p);

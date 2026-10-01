@@ -18,7 +18,7 @@ type Props = { params: Promise<{ bookingNo: string }>; searchParams: Promise<{ p
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { bookingNo } = await params;
-  return { title: `Booking ${bookingNo} | GabiElectricals`, description: 'Track your electrical service booking status, reschedule or manage payment.' };
+  return { title: `Booking ${bookingNo}`, description: 'Track your electrical service booking status, reschedule or manage payment.' };
 }
 
 const CHAIN = ['REQUESTED', 'CONFIRMED', 'ASSIGNED', 'ON_THE_WAY', 'IN_PROGRESS', 'COMPLETED', 'REVIEWED'] as const;

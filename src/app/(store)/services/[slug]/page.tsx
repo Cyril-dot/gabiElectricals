@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const svc = await prisma.service.findUnique({ where: { slug }, select: { name: true, shortDesc: true, description: true, basePrice: true } });
   if (!svc) return { title: 'Service not found' };
   return {
-    title: `${svc.name} in Ghana | from ${ghs(svc.basePrice, { cents: false })} | GabiElectricals`,
+    title: `${svc.name} in Ghana — from ${ghs(svc.basePrice, { cents: false })}`,
     description: (svc.shortDesc ?? svc.description).slice(0, 155),
   };
 }

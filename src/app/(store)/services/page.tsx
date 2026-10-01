@@ -9,7 +9,7 @@ import { Icon } from '@/components/Icon';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Certified Electrical Services in Ghana | GabiElectricals',
+  title: 'Certified Electrical Services in Ghana',
   description:
     'House wiring, fault finding, DB upgrades, solar, CCTV and 24/7 emergency call-outs by NIET-certified electricians. Warranty included on every job.',
 };

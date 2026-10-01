@@ -6,7 +6,7 @@ import BookWizard from './BookWizard';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'Book a Certified Electrician | GabiElectricals',
+  title: 'Book a Certified Electrician',
   description: 'Book house wiring, fault finding, DB upgrades, solar, CCTV and emergency call-outs online — pick a slot, pay a small deposit, done.',
 };
 

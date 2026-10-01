@@ -6,6 +6,7 @@ import { ProductCard, type CardProduct } from '@/components/ProductCard';
 import { JSONLd } from '@/components/JsonLd';
 import { FadeUp } from '@/components/FadeUp';
 import { Icon } from '@/components/Icon';
+import { SortForm } from './SortForm';
 import { jsonArr } from '@/lib/ghana';
 
 export const dynamic = 'force-dynamic';
@@ -86,7 +87,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   }
   const q = s(sp, 'q');
   return {
-    title: q ? `Search “${q}” — GabiElectricals Shop` : 'Shop Electrical Materials Online Ghana | GabiElectricals',
+    title: q ? `Search “${q}” — Shop` : 'Shop Electrical Materials Online in Ghana',
     description: 'Genuine cables, breakers, solar, tools and more — delivered across Ghana from Accra.',
   };
 }
@@ -174,14 +175,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         </div>
         <div className="flex items-center gap-2">
           <label htmlFor="sort" className="text-[13px] font-bold">Sort</label>
-          <form method="get" className="flex gap-1 items-center">
-            {Object.entries(sp).filter(([k, v]) => typeof v === 'string' && v && !['sort', 'page'].includes(k)).map(([k, v]) => <input key={k} type="hidden" name={k} value={v as string} />)}
-            <select id="sort" name="sort" defaultValue={sort} className="border border-line rounded-xl px-3 py-2.5 text-sm font-semibold bg-white dark:bg-navy min-h-[44px]">
-              {SORTS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-            </select>
-            <input type="hidden" name="view" value={view} />
-            <button className="btn-ghost !px-3 !py-2.5 text-sm" aria-label="Apply sort">Go</button>
-          </form>
+          <SortForm sp={sp} sort={sort} sorts={SORTS} view={view} />
           <div className="hidden sm:flex rounded-xl border border-line overflow-hidden" role="group" aria-label="View mode">
             <Link href={pageHrefSafe(sp, 'grid')} aria-pressed={view === 'grid'} className={`px-3 py-2.5 text-sm font-bold inline-flex items-center gap-1.5 ${view === 'grid' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}><Icon name="grid_view" size={16} /> Grid</Link>
             <Link href={pageHrefSafe(sp, 'list')} aria-pressed={view === 'list'} className={`px-3 py-2.5 text-sm font-bold border-l border-line inline-flex items-center gap-1.5 ${view === 'list' ? 'bg-navy text-white' : 'hover:bg-mist dark:hover:bg-navy-700'}`}><Icon name="menu" size={16} /> List</Link>

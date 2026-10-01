@@ -38,7 +38,12 @@ export default async function ContactPage() {
               src="https://www.openstreetmap.org/export/embed.html?bbox=-0.2055%2C5.5400%2C-0.1555%2C5.5800&layer=mapnik&marker=5.5560%2C-0.1940"
               className="w-full h-72 border-0"
               loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
             />
+            <a href="https://www.google.com/maps/search/?api=1&query=Ghana+House+44+Liberation+Link+Osu+Accra" target="_blank" rel="noreferrer"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-blue dark:text-volt hover:bg-mist dark:hover:bg-white/5 border-t border-line transition-colors">
+              <Icon name="directions" size={17} /> Get directions
+            </a>
           </div>
         </div>
         <ContactForms />
