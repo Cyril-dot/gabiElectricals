@@ -4,6 +4,8 @@ import QRCode from 'qrcode';
 import { prisma } from '@/lib/db';
 import { Logo } from '@/components/Logo';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = { title: 'Business QR — GabiElectricals' };
 
 /** /qr — static business QR for in-person payments (walk-in counter). */

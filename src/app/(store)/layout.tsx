@@ -8,6 +8,8 @@ import { RefTracker } from '@/components/RefTracker';
 import { ChatWidget } from '@/components/ChatWidget';
 import { CookieConsent } from '@/components/CookieConsent';
 
+export const dynamic = 'force-dynamic';
+
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   const biz = (await getSettings()).business;
   return (
