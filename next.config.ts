@@ -11,6 +11,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  outputFileTracingIncludes: { '/*': ['./prisma/dev.db'] },
   images: { remotePatterns: [{ protocol: 'https', hostname: '**' }], formats: ['image/avif', 'image/webp'] },
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
