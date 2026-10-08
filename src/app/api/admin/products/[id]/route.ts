@@ -42,6 +42,14 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ ok: true, id: copy.id });
   }
 
+  if (action === 'stock') {
+    const s = z.object({ stock: z.number().int().min(0).max(100000) }).safeParse(body);
+    if (!s.success) return NextResponse.json({ error: 'Stock must be a whole number, 0 or more' }, { status: 400 });
+    const p = await prisma.product.update({ where: { id }, data: { stock: s.data.stock } });
+    await recordActivity(null, 'PRODUCT_STOCK_CHANGED', 'PRODUCT', id, g.ip, { from: existing.stock, to: s.data.stock });
+    return NextResponse.json({ ok: true, product: p });
+  }
+
   if (action === 'status') {
     const s = z.object({ status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']) }).safeParse(body);
     if (!s.success) return NextResponse.json({ error: 'Invalid status' }, { status: 400 });

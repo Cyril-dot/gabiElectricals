@@ -4,6 +4,7 @@ import { requireRole } from '@/lib/auth';
 import { notFound, redirect } from 'next/navigation';
 import { ghs } from '@/lib/money';
 import { StatusBadge, Icon, ICONS, fmtDate, fmtDateTime } from '../../_ui';
+import { StockControl } from '../../_StockControl';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,6 +93,11 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
               <Fact label="Warranty">{p.warrantyMonths > 0 ? `${p.warrantyMonths} months` : '—'}</Fact>
               <Fact label="Weight">{p.weightKg != null ? `${p.weightKg} kg` : '—'}</Fact>
             </div>
+          </div>
+
+          <div className="card p-5">
+            <h2 className="mb-4 font-display text-sm font-extrabold uppercase tracking-wide text-soft">Stock control</h2>
+            <StockControl id={p.id} stock={p.stock} lowStockAlert={p.lowStockAlert} />
           </div>
 
           <div className="card p-5">

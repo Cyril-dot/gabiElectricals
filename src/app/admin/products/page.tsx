@@ -91,7 +91,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
                     <td className={`px-4 py-2.5 text-right font-bold ${p.stock === 0 ? 'text-danger' : p.stock <= p.lowStockAlert ? 'text-warning' : ''}`}>{p.stock}</td>
                     <td className="px-4 py-2.5"><StatusBadge status={p.status} /></td>
                     <td className="px-4 py-2.5 whitespace-nowrap text-soft">{fmtDate(p.updatedAt)}</td>
-                    <td className="px-4 py-2.5"><RowActions id={p.id} sku={p.sku} status={p.status} /></td>
+                    <td className="px-4 py-2.5"><RowActions id={p.id} sku={p.sku} status={p.status} stock={p.stock} /></td>
                   </tr>
                 );
               })}
