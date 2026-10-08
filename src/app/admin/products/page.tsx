@@ -49,7 +49,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
           <ul className="flex flex-wrap gap-2">
             {lowStock.map(p => (
               <li key={p.id}>
-                <Link href={`/admin/products/${p.id}/edit`} className="flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-bold hover:border-warning hover:text-warning">
+                <Link href={`/admin/products/${p.id}`} className="flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-bold hover:border-warning hover:text-warning">
                   {p.name.slice(0, 34)} <span className={p.stock === 0 ? 'text-danger' : 'text-warning'}>{p.stock === 0 ? 'OUT' : `${p.stock} left`}</span>
                 </Link>
               </li>
@@ -74,7 +74,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
                 return (
                   <tr key={p.id} className="border-b border-line last:border-0 hover:bg-mist">
                     <td className="px-4 py-2.5">
-                      <Link href={`/admin/products/${p.id}/edit`} className="flex items-center gap-3">
+                      <Link href={`/admin/products/${p.id}`} className="flex items-center gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={(JSON.parse(p.images)[0] as string) ?? '/icon.svg'} alt="" className="h-10 w-10 rounded-lg border border-line object-cover" loading="lazy" />
                         <span className="max-w-[220px] truncate font-bold text-navy group-hover:text-blue dark:text-white">{p.name}</span>
