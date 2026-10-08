@@ -35,6 +35,7 @@ export function HeaderClient({ cats, bar, user, biz }: Props) {
   const [dark, setDark] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  const acctRef = useRef<HTMLDivElement>(null);
   const count = useCart(s => s.items.reduce((n, i) => n + i.qty, 0));
   const setOpenCart = useCart(s => s.setOpen);
   const router = useRouter();
@@ -58,10 +59,18 @@ export function HeaderClient({ cats, bar, user, biz }: Props) {
     return () => clearTimeout(t);
   }, [q]);
   useEffect(() => {
-    const close = (e: MouseEvent) => { if (boxRef.current && !boxRef.current.contains(e.target as Node)) { setSugg([]); setAcct(false); } };
+    // Each popover closes only when the click lands outside ITSELF.
+    // Sharing one ref here was the dead-menu bug: the account menu
+    // closed on mousedown — before the click could reach its links —
+    // because the only ref watched the search box.
+    const close = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setSugg([]);
+      if (acctRef.current && !acctRef.current.contains(e.target as Node)) setAcct(false);
+    };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
+  useEffect(() => { setAcct(false); setDrawer(false); }, [path]);
 
   const toggleTheme = () => {
     const d = !dark;
@@ -145,20 +154,20 @@ export function HeaderClient({ cats, bar, user, biz }: Props) {
               <span key={dark ? 'd' : 'l'} className="animate-scale-in grid place-items-center"><Icon name={dark ? 'light_mode' : 'dark_mode'} size={20} /></span>
             </button>
             {user ? (
-              <div className="relative">
-                <button onClick={() => setAcct(a => !a)} aria-expanded={acct} className="icon-btn !gap-1 text-sm font-bold max-w-[132px]">
-                  <Icon name="person" size={20} />
-                  <span className="truncate hidden sm:inline">{user.name.split(' ')[0]}</span>
-                  <Icon name="expand_more" size={15} className={`transition-transform duration-200 ${acct ? 'rotate-180' : ''}`} />
+              <div className="relative" ref={acctRef}>
+                <button onClick={() => setAcct(a => !a)} aria-expanded={acct} aria-haspopup="menu" className="inline-flex items-center gap-1 rounded-[10px] px-2 py-2 text-sm font-bold text-ink hover:bg-mist dark:hover:bg-navy-700 hover:text-blue transition-colors min-w-0 max-w-[9.5rem]">
+                  <Icon name="person" size={20} className="shrink-0" />
+                  <span className="truncate min-w-0 hidden sm:inline">{user.name.split(' ')[0]}</span>
+                  <Icon name="expand_more" size={15} className={`shrink-0 transition-transform duration-200 ${acct ? 'rotate-180' : ''}`} />
                 </button>
                 {acct && (
-                  <div className="absolute right-0 top-full mt-2 w-56 card shadow-pop py-1.5 text-sm animate-scale-in origin-top-right">
-                    <Link href="/account" className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 font-semibold transition-colors"><Icon name="dashboard" size={17} className="text-soft" />My dashboard</Link>
-                    <Link href="/account/orders" className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="receipt_long" size={17} className="text-soft" />Orders</Link>
-                    <Link href="/account/bookings" className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="calendar_month" size={17} className="text-soft" />Bookings</Link>
-                    <Link href="/account/referrals" className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="wallet" size={17} className="text-soft" />Referrals & wallet</Link>
-                    {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && <Link href="/admin" className="flex items-center gap-2.5 px-4 py-2 text-blue font-bold hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="settings" size={17} />Admin panel</Link>}
-                    {user.role === 'TECHNICIAN' && <Link href="/technician" className="flex items-center gap-2.5 px-4 py-2 text-blue font-bold hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="engineering" size={17} />Technician app</Link>}
+                  <div role="menu" className="absolute right-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] card shadow-pop py-1.5 text-sm animate-scale-in origin-top-right z-50">
+                    <Link href="/account" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 font-semibold transition-colors"><Icon name="dashboard" size={17} className="text-soft" />My dashboard</Link>
+                    <Link href="/account/orders" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="receipt_long" size={17} className="text-soft" />Orders</Link>
+                    <Link href="/account/bookings" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="calendar_month" size={17} className="text-soft" />Bookings</Link>
+                    <Link href="/account/referrals" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="wallet" size={17} className="text-soft" />Referrals & wallet</Link>
+                    {(user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') && <Link href="/admin" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 text-blue font-bold hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="settings" size={17} />Admin panel</Link>}
+                    {user.role === 'TECHNICIAN' && <Link href="/technician" onClick={() => setAcct(false)} className="flex items-center gap-2.5 px-4 py-2 text-blue font-bold hover:bg-mist dark:hover:bg-navy-700 transition-colors"><Icon name="engineering" size={17} />Technician app</Link>}
                     <form action="/api/auth/logout" method="post" className="mt-1 border-t border-line pt-1"><button className="w-full flex items-center gap-2.5 px-4 py-2 text-danger font-semibold hover:bg-danger/5 transition-colors"><Icon name="logout" size={17} />Sign out</button></form>
                   </div>
                 )}
