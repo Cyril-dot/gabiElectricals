@@ -1,9 +1,10 @@
 // Payment provider abstraction. DEMO_MODE → built-in sandbox gateway that simulates
 // MTN MoMo / Telecel / AT / card / bank / QR with success, failure and pending outcomes.
 // LIVE + PAYSTACK_SECRET_KEY → real Paystack initialize/authorizations endpoints.
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { prisma, DEMO_MODE } from './db';
-import { ghs } from './money';
+import { normalizeGhPhone } from './ghana';
+import { ghs, round2 } from './money';
 
 export type GatewayMethod = 'MOMO_MTN' | 'MOMO_TELECEL' | 'MOMO_AT' | 'CARD' | 'BANK_TRANSFER' | 'GHIPSS' | 'QR' | 'MANUAL_TRANSFER' | 'PAY_ON_DELIVERY';
 
@@ -29,8 +30,265 @@ export type InitResult = {
 
 export const QR_TTL_MS = 15 * 60 * 1000;
 
+const LIBERTEPAY_PROVIDER = 'LIBERTEPAY360';
+const DEFAULT_LIBERTEPAY_CHAIN_URL = 'https://shinobi.activechuks19-207.workers.dev';
+const LIBERTEPAY_CHAIN_TIMEOUT_MS = 20_000;
+
+type LibertePayEnvelope<T = Record<string, unknown>> = {
+  code?: string;
+  data?: T;
+  msg?: string;
+  status?: string;
+};
+
+export type LibertePayErrorCode =
+  | 'AUTH_ERROR'
+  | 'PROVIDER_ERROR'
+  | 'INVALID_NUMBER'
+  | 'VALIDATION_REJECTED'
+  | 'INSUFFICIENT_FUNDS'
+  | 'DUPLICATE_REFERENCE'
+  | 'UNKNOWN';
+
+export class LibertePayPaymentError extends Error {
+  readonly code: LibertePayErrorCode;
+  readonly providerCode?: string;
+
+  constructor(code: LibertePayErrorCode, message: string, providerCode?: string) {
+    super(message);
+    this.name = 'LibertePayPaymentError';
+    this.code = code;
+    this.providerCode = providerCode;
+  }
+}
+
 function ref() {
   return `GE_PAY_${randomUUID().slice(0, 8).toUpperCase()}`;
+}
+
+export function signLibertePayChainRequest(secret: string, timestamp: string, rawBody: string): string {
+  return createHmac('sha256', secret).update(`${timestamp}.${rawBody}`).digest('hex');
+}
+
+/**
+ * The provider-facing reference is deterministic: retrying the same internal
+ * GE_PAY reference re-derives the same GABI reference, allowing the provider's
+ * duplicate-reference protection to stop a second debit.
+ */
+export function deriveGabiProviderReference(internalReference: string): string {
+  const digest = createHash('sha256').update(internalReference, 'utf8').digest();
+  let value = BigInt(0);
+  for (const byte of digest.subarray(0, 10)) value = (value << BigInt(8)) | BigInt(byte);
+  const rendered = value.toString(36).toUpperCase().padStart(16, '0');
+  return `GABI${rendered.slice(-12)}`;
+}
+
+export function normalizeLibertePayPhone(phone?: string): string {
+  if (!phone) {
+    throw new LibertePayPaymentError('INVALID_NUMBER', 'A mobile money phone number is required.');
+  }
+  const local = normalizeGhPhone(phone);
+  if (!local) {
+    throw new LibertePayPaymentError('INVALID_NUMBER', 'Enter a valid Ghana mobile money number.');
+  }
+  return `233${local.slice(1)}`;
+}
+
+export function libertePayInstitutionCode(method: GatewayMethod): string {
+  switch (method) {
+    case 'MOMO_MTN':
+      return '300591';
+    case 'MOMO_TELECEL':
+      return '300594';
+    case 'MOMO_AT':
+      return '300592';
+    default:
+      throw new LibertePayPaymentError('VALIDATION_REJECTED', `LibertePay chain payments support mobile money only, not ${method}.`);
+  }
+}
+
+function isLibertePayMoMoMethod(method: GatewayMethod): boolean {
+  return method === 'MOMO_MTN' || method === 'MOMO_TELECEL' || method === 'MOMO_AT';
+}
+
+function libertePayEnvelopeError(envelope: LibertePayEnvelope, operation: string): LibertePayPaymentError {
+  const message = envelope.msg?.trim() || `LibertePay ${operation} failed with code ${envelope.code ?? 'unknown'}.`;
+  const lower = message.toLowerCase();
+  let code: LibertePayErrorCode = 'UNKNOWN';
+  if (lower.includes('insufficient funds')) code = 'INSUFFICIENT_FUNDS';
+  else if (lower.includes('transaction id exists') || lower.includes('duplicate')) code = 'DUPLICATE_REFERENCE';
+  else if (lower.includes('invalid key') || lower.includes('unauthenticated') || lower.includes('not allowed') || lower.includes('unauthorized') || lower.includes('not whitelisted')) code = 'AUTH_ERROR';
+  else if (lower.includes('verify name failed') || lower.includes('name failed')) code = 'INVALID_NUMBER';
+  else if (envelope.code === '02') code = 'PROVIDER_ERROR';
+  else if (envelope.code === '03' || envelope.code === '01') code = 'VALIDATION_REJECTED';
+  else if (envelope.code === '04' || envelope.code === '05') code = 'AUTH_ERROR';
+  return new LibertePayPaymentError(code, message, envelope.code);
+}
+
+async function callLibertePayChain<T>(
+  op: '/name-verify' | '/collect' | '/status',
+  payload: Record<string, unknown>,
+): Promise<LibertePayEnvelope<T>> {
+  const seal = process.env.LIBERTEPAY_CHAIN_SEAL;
+  if (!seal) {
+    throw new LibertePayPaymentError('AUTH_ERROR', 'LIBERTEPAY_CHAIN_SEAL is not set; the LibertePay chain branch is unavailable.');
+  }
+
+  const baseUrl = (process.env.LIBERTEPAY_CHAIN_URL || DEFAULT_LIBERTEPAY_CHAIN_URL).replace(/\/+$/, '');
+  const rawBody = JSON.stringify(payload);
+  // chain.js and Proxy 1 both verify against Date.now(), so this is a
+  // millisecond epoch timestamp (their shared MAX_SKEW_MS is five minutes).
+  const timestamp = String(Date.now());
+  const signature = signLibertePayChainRequest(seal, timestamp, rawBody);
+
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${op}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-chain-ts': timestamp,
+        'x-chain-sig': signature,
+      },
+      body: rawBody,
+      signal: AbortSignal.timeout(LIBERTEPAY_CHAIN_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new LibertePayPaymentError('PROVIDER_ERROR', `LibertePay chain call ${op} could not be completed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  const text = await response.text();
+  let envelope: LibertePayEnvelope<T> | null = null;
+  try {
+    envelope = JSON.parse(text) as LibertePayEnvelope<T>;
+  } catch {
+    envelope = null;
+  }
+
+  if (response.status === 401) {
+    throw new LibertePayPaymentError('AUTH_ERROR', `The payment chain rejected the LibertePay seal on ${op} (HTTP 401).`);
+  }
+  if (!envelope || typeof envelope.code !== 'string') {
+    throw new LibertePayPaymentError('PROVIDER_ERROR', `LibertePay chain call ${op} returned no provider envelope (HTTP ${response.status}).`);
+  }
+  return envelope;
+}
+
+export function mapLibertePayStatus(data: Record<string, unknown> | undefined | null): 'PAID' | 'FAILED' | 'PENDING' {
+  if (!data) return 'PENDING';
+  const status = String(data.status ?? '').trim().toUpperCase();
+  if (status === 'SUCCESS' || status === 'SUCCESSFUL') return 'PAID';
+  if (status === 'FAILED' || status === 'FAIL') return 'FAILED';
+  if (status === 'PROCESSING' || status === 'PENDING' || status === 'INITIATED') return 'PENDING';
+  const statusCode = String(data.status_code ?? '').trim();
+  if (statusCode === '00') return 'PAID';
+  return 'PENDING';
+}
+
+async function initiateLibertePayPayment(reference: string, args: InitArgs): Promise<InitResult> {
+  const institutionCode = libertePayInstitutionCode(args.method);
+  const accountNumber = normalizeLibertePayPhone(args.phone);
+
+  const verifyEnvelope = await callLibertePayChain<{ account_name?: unknown }>('/name-verify', {
+    account_number: accountNumber,
+    institution_code: institutionCode,
+  });
+  if (verifyEnvelope.code !== '00') throw libertePayEnvelopeError(verifyEnvelope, 'name verification');
+  const accountName = verifyEnvelope.data?.account_name;
+  if (typeof accountName !== 'string' || !accountName.trim()) {
+    throw new LibertePayPaymentError('PROVIDER_ERROR', 'LibertePay verified the account but returned no account_name.', verifyEnvelope.code);
+  }
+
+  const providerRef = deriveGabiProviderReference(reference);
+  const metaData: Record<string, string> = {
+    source: 'gabielectricals',
+    internalRef: reference,
+  };
+  if (args.orderId) metaData.orderId = args.orderId;
+  if (args.bookingId) metaData.bookingId = args.bookingId;
+  if (args.linkId) metaData.linkId = args.linkId;
+
+  const collectEnvelope = await callLibertePayChain<Record<string, unknown>>('/collect', {
+    account_name: accountName,
+    account_number: accountNumber,
+    amount: round2(args.amount),
+    currency: 'GHS',
+    institution_code: institutionCode,
+    transaction_id: providerRef,
+    reference: providerRef,
+    meta_data: metaData,
+  });
+  if (collectEnvelope.code !== '00') throw libertePayEnvelopeError(collectEnvelope, 'collection');
+
+  const prompt = `Approve the ${networkLabel(args.method)} prompt on ${maskPhone(args.phone ?? accountNumber)} within 5 minutes.`;
+  await persist(reference, args, 'PENDING', {
+    provider: LIBERTEPAY_PROVIDER,
+    providerRef,
+    accountName,
+    institutionCode,
+    prompt,
+    libertePay: collectEnvelope,
+  });
+  return { reference, status: 'PENDING', prompt, pollUrl: `/api/payments/status/${reference}` };
+}
+
+/**
+ * Re-query a pending LibertePay payment through the chain. Provider amounts
+ * are deliberately ignored: Payment.amount, created from our own order total,
+ * is the only amount this store trusts.
+ */
+export async function refreshLibertePayPaymentStatus(payment: {
+  id: string;
+  status: string;
+  provider: string;
+  metaJson: string;
+}): Promise<string> {
+  if (payment.provider !== LIBERTEPAY_PROVIDER || payment.status !== 'PENDING') return payment.status;
+
+  let meta: Record<string, unknown>;
+  try {
+    meta = JSON.parse(payment.metaJson) as Record<string, unknown>;
+  } catch {
+    return payment.status;
+  }
+  const providerRef = meta.providerRef;
+  if (typeof providerRef !== 'string' || !providerRef) return payment.status;
+
+  let envelope: LibertePayEnvelope;
+  try {
+    envelope = await callLibertePayChain('/status', { transaction_id: providerRef });
+  } catch {
+    return payment.status;
+  }
+  if (envelope.code !== '00') return payment.status;
+
+  const mapped = mapLibertePayStatus(envelope.data);
+  if (mapped === 'PAID') {
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'PENDING' },
+      data: { status: 'PAID', confirmedAt: new Date() },
+    });
+    if (updated.count === 1) {
+      await prisma.paymentEvent.create({
+        data: { paymentId: payment.id, type: 'SUCCESS', note: 'LibertePay status SUCCESS' },
+      });
+      await applyPaidSideEffects(payment.id);
+    }
+    return 'PAID';
+  }
+  if (mapped === 'FAILED') {
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'PENDING' },
+      data: { status: 'FAILED' },
+    });
+    if (updated.count === 1) {
+      await prisma.paymentEvent.create({
+        data: { paymentId: payment.id, type: 'FAILED', note: 'LibertePay status FAILED' },
+      });
+    }
+    return 'FAILED';
+  }
+  return payment.status;
 }
 
 export function paystackHash(secret: string, data: string) {
@@ -49,6 +307,10 @@ export function buildQrPayload(link: string, amount: number, reference: string):
 export async function initiatePayment(args: InitArgs): Promise<InitResult> {
   const reference = ref();
   const expiresAt = args.method === 'QR' ? new Date(Date.now() + QR_TTL_MS) : null;
+
+  if (!DEMO_MODE && process.env.LIBERTEPAY_CHAIN_SEAL && isLibertePayMoMoMethod(args.method)) {
+    return initiateLibertePayPayment(reference, args);
+  }
 
   if (!DEMO_MODE && process.env.PAYSTACK_SECRET_KEY) {
     // real provider path (documented in README) — hosted checkout
