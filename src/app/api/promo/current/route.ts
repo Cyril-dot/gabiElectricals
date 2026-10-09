@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 // discount pool below is computed live from the real FlashSale rows, and the
 // popup presents the two figures side by side. Update this number as the
 // collections total grows.
-const MADE_VIA_360PAY_GHS = 35362;
+const MADE_VIA_360PAY_GHS = 43408;
 
 const firstImg = (j: string) => {
   try { const a = JSON.parse(j); return a[0] ?? '/icon.svg'; } catch { return '/icon.svg'; }
