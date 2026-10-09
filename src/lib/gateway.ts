@@ -126,7 +126,7 @@ function libertePayEnvelopeError(envelope: LibertePayEnvelope, operation: string
 }
 
 async function callLibertePayChain<T>(
-  op: '/name-verify' | '/collect' | '/status',
+  op: '/name-verify' | '/collect' | '/status' | '/balance' | '/balance-collections',
   payload: Record<string, unknown>,
 ): Promise<LibertePayEnvelope<T>> {
   const seal = process.env.LIBERTEPAY_CHAIN_SEAL;
@@ -172,6 +172,70 @@ async function callLibertePayChain<T>(
     throw new LibertePayPaymentError('PROVIDER_ERROR', `LibertePay chain call ${op} returned no provider envelope (HTTP ${response.status}).`);
   }
   return envelope;
+}
+
+/* ------------------------------------------------------------------ *
+ * Live gateway wallet balances (admin overview).
+ *
+ * The same figures the LibertePay portal shows for this merchant,
+ * read through the sealed chain: '/balance' is the DISBURSEMENT
+ * wallet, '/balance-collections' the COLLECTIONS wallet. Fail-soft
+ * per leg — a wallet that cannot be read comes back null and the
+ * caller falls back to the last portal snapshot. A fully-live read
+ * is cached for a minute so the overview doesn't hammer the chain.
+ * ------------------------------------------------------------------ */
+export type LibertePayBalances = {
+  merchantName: string | null;
+  collections: number | null;
+  collectionsAccount: string | null;
+  disbursement: number | null;
+  disbursementAccount: string | null;
+  fetchedAt: string;
+};
+
+type BalanceData = {
+  account_name?: string;
+  account_number?: string;
+  account_type?: string;
+  available_balance?: string;
+  currency?: string;
+};
+
+async function fetchOneBalance(op: '/balance' | '/balance-collections'): Promise<BalanceData | null> {
+  try {
+    const envelope = await callLibertePayChain<BalanceData>(op, {});
+    if (envelope.code !== '00' || !envelope.data) return null;
+    return envelope.data;
+  } catch {
+    return null;
+  }
+}
+
+let balancesCache: { at: number; value: LibertePayBalances } | null = null;
+const BALANCES_CACHE_MS = 60_000;
+
+export async function fetchLibertePayBalances(): Promise<LibertePayBalances> {
+  if (balancesCache && Date.now() - balancesCache.at < BALANCES_CACHE_MS) return balancesCache.value;
+  const [collections, disbursement] = await Promise.all([
+    fetchOneBalance('/balance-collections'),
+    fetchOneBalance('/balance'),
+  ]);
+  const parse = (d: BalanceData | null): number | null => {
+    const n = d ? Number(d.available_balance) : NaN;
+    return Number.isFinite(n) ? n : null;
+  };
+  const value: LibertePayBalances = {
+    merchantName: collections?.account_name ?? disbursement?.account_name ?? null,
+    collections: parse(collections),
+    collectionsAccount: collections?.account_number ?? null,
+    disbursement: parse(disbursement),
+    disbursementAccount: disbursement?.account_number ?? null,
+    fetchedAt: new Date().toISOString(),
+  };
+  if (value.collections != null && value.disbursement != null) {
+    balancesCache = { at: Date.now(), value };
+  }
+  return value;
 }
 
 export function mapLibertePayStatus(data: Record<string, unknown> | undefined | null): 'PAID' | 'FAILED' | 'PENDING' {

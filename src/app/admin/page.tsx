@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ghs } from '@/lib/money';
+import { fetchLibertePayBalances } from '@/lib/gateway';
+import { GATEWAY_PORTAL_SNAPSHOT } from '@/lib/gateway-snapshot';
 import { Icon, ICONS, StatusBadge, fmtDateTime } from './_ui';
 import { SalesChart } from './_Chart';
 
@@ -37,6 +39,41 @@ export default async function AdminOverview() {
     }),
   ]);
 
+  /* Gateway truth (360Pay / LibertePay): live wallet balances read
+     through the chain — the same figures the merchant portal shows —
+     plus this store's own slice of gateway payments, and the actual
+     products those store sales moved. Live reads win; the portal
+     snapshot in gateway-snapshot.ts is the fallback and the source
+     for the all-time transaction counts the chain cannot report. */
+  const [balances, storeGwAgg, storeGwByStatus, soldItems] = await Promise.all([
+    fetchLibertePayBalances(),
+    prisma.payment.aggregate({ where: { provider: 'LIBERTEPAY360', status: 'PAID' }, _sum: { amount: true }, _count: true }),
+    prisma.payment.groupBy({ by: ['status'], where: { provider: 'LIBERTEPAY360' }, _count: true }),
+    prisma.orderItem.findMany({
+      where: { order: { status: { in: ['PAID', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED'] } } },
+      select: { name: true, image: true, price: true, qty: true, productId: true, orderId: true },
+    }),
+  ]);
+
+  const gwLive = balances.collections != null && balances.disbursement != null;
+  const gwCollections = balances.collections ?? GATEWAY_PORTAL_SNAPSHOT.collectionsGhs;
+  const gwDisbursement = balances.disbursement ?? GATEWAY_PORTAL_SNAPSHOT.disbursementGhs;
+  const storeGwTotal = storeGwByStatus.reduce((s, r) => s + r._count, 0);
+  const storeGwPaid = storeGwByStatus.find(r => r.status === 'PAID')?._count ?? 0;
+  const storeGwFailed = storeGwByStatus.find(r => r.status === 'FAILED')?._count ?? 0;
+
+  const productMap = new Map<string, { name: string; image: string | null; productId: string | null; units: number; revenue: number; orderIds: Set<string> }>();
+  for (const it of soldItems) {
+    const key = it.productId ?? it.name;
+    const e = productMap.get(key) ?? { name: it.name, image: it.image, productId: it.productId, units: 0, revenue: 0, orderIds: new Set<string>() };
+    e.units += it.qty;
+    e.revenue += it.price * it.qty;
+    e.orderIds.add(it.orderId);
+    if (!e.image && it.image) e.image = it.image;
+    productMap.set(key, e);
+  }
+  const topProducts = [...productMap.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8);
+
   const revenue = paidAgg._sum.amount ?? 0;
   const aov = deliveredCount > 0
     ? (await prisma.order.aggregate({ where: { status: 'DELIVERED' }, _avg: { total: true } }))._avg.total ?? 0
@@ -68,8 +105,44 @@ export default async function AdminOverview() {
         </div>
       </div>
 
+      <section className="card p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-base font-extrabold text-navy dark:text-white">
+            360Pay Gateway
+            <span className="ml-2 text-xs font-bold text-soft">{balances.merchantName ?? 'Tuguu Gabriel Ventures'} · {GATEWAY_PORTAL_SNAPSHOT.merchantId}</span>
+          </h2>
+          {gwLive ? (
+            <span className="rounded-full border border-line px-2.5 py-1 text-[11px] font-bold"><span className="text-success">●</span> LIVE FROM GATEWAY</span>
+          ) : (
+            <span className="rounded-full border border-line px-2.5 py-1 text-[11px] font-bold"><span className="text-warning">●</span> PORTAL SNAPSHOT · {GATEWAY_PORTAL_SNAPSHOT.asOf.toUpperCase()}</span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Collections balance</p>
+            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(gwCollections)}</p>
+            <p className="mt-0.5 text-xs font-semibold text-soft">Wallet {balances.collectionsAccount ?? GATEWAY_PORTAL_SNAPSHOT.collectionsAccount}{balances.collections == null && ' · last verified 9 Oct 2026'}</p>
+          </div>
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Disbursement balance</p>
+            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(gwDisbursement)}</p>
+            <p className="mt-0.5 text-xs font-semibold text-soft">Wallet {balances.disbursementAccount ?? GATEWAY_PORTAL_SNAPSHOT.disbursementAccount}{balances.disbursement == null && ' · last verified 9 Oct 2026'}</p>
+          </div>
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Collected via this store</p>
+            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(storeGwAgg._sum.amount ?? 0)}</p>
+            <p className="mt-0.5 text-xs font-semibold text-soft">{storeGwTotal} gateway payment{storeGwTotal === 1 ? '' : 's'} · {storeGwPaid} successful · {storeGwFailed} failed</p>
+          </div>
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Gateway transactions · all time</p>
+            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{GATEWAY_PORTAL_SNAPSHOT.totalTransactions.toLocaleString('en-GB')}</p>
+            <p className="mt-0.5 text-xs font-semibold text-soft">{GATEWAY_PORTAL_SNAPSHOT.successfulTransactions} successful · {GATEWAY_PORTAL_SNAPSHOT.failedTransactions.toLocaleString('en-GB')} failed · portal {GATEWAY_PORTAL_SNAPSHOT.asOf}</p>
+          </div>
+        </div>
+      </section>
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Kpi label="Revenue · 30d" value={ghs(revenue, { cents: false })} sub="Confirmed payments" href="/admin/reports" tone="text-navy dark:text-white" />
+        <Kpi label="Revenue · 30d" value={ghs(revenue, { cents: false })} sub="Confirmed store payments" href="/admin/reports" tone="text-navy dark:text-white" />
         <Kpi label="Orders · 30d" value={String(orderCount)} sub="All statuses" href="/admin/orders" />
         <Kpi label="Bookings · 30d" value={String(bookingCount)} sub="Service requests" href="/admin/bookings" />
         <Kpi label="Avg order value" value={ghs(aov, { cents: false })} sub={`${deliveredCount} delivered`} href="/admin/reports" />
@@ -103,6 +176,33 @@ export default async function AdminOverview() {
             {recentBookings.length === 0 && <li className="text-sm text-soft">No bookings yet.</li>}
           </ul>
         </div>
+      </div>
+
+      <div className="card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-base font-extrabold text-navy dark:text-white">Top products by revenue</h2>
+          <Link href="/admin/products" className="text-xs font-bold text-blue hover:underline">All products →</Link>
+        </div>
+        <ul className="grid gap-2.5 md:grid-cols-2">
+          {topProducts.map(p => (
+            <li key={p.productId ?? p.name}>
+              <Link href={p.productId ? `/admin/products/${p.productId}` : '/admin/products'} className="flex items-center gap-3 rounded-xl border border-line p-3 transition-colors hover:border-blue">
+                {p.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-mist font-display text-lg font-extrabold text-navy dark:text-white">{p.name.slice(0, 1)}</span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{p.name}</p>
+                  <p className="text-xs text-soft">{p.units} sold · {p.orderIds.size} order{p.orderIds.size === 1 ? '' : 's'}</p>
+                </div>
+                <span className="shrink-0 font-display text-[15px] font-extrabold text-navy dark:text-white">{ghs(p.revenue)}</span>
+              </Link>
+            </li>
+          ))}
+          {topProducts.length === 0 && <li className="text-sm text-soft">No product sales yet.</li>}
+        </ul>
       </div>
 
       <div className="card overflow-hidden">
