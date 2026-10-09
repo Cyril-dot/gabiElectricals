@@ -4,6 +4,7 @@ import { CartDrawer } from '@/components/CartDrawer';
 import { FloatingButtons } from '@/components/FloatingButtons';
 import { getSettings } from '@/lib/settings';
 import { PopupHost } from '@/components/PopupHost';
+import { FlashSalePopup } from '@/components/FlashSalePopup';
 import { RefTracker } from '@/components/RefTracker';
 import { ChatWidget } from '@/components/ChatWidget';
 import { CookieConsent } from '@/components/CookieConsent';
@@ -20,6 +21,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
       <CartDrawer />
       <FloatingButtons phone={biz.phone} whatsapp={biz.whatsapp} />
       <PopupHost />
+      <FlashSalePopup />
       <RefTracker />
       <ChatWidget whatsapp={biz.whatsapp} />
       <CookieConsent />
