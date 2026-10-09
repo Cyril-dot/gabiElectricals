@@ -24,8 +24,7 @@ export default async function AdminOverview() {
   const d14 = new Date(now.getTime() - 13 * 86400000);
   d14.setHours(0, 0, 0, 0);
 
-  const [paidAgg, orderCount, bookingCount, deliveredCount, lowStock, pendingApprovals, recentOrders, recentBookings, chartOrders] = await Promise.all([
-    prisma.payment.aggregate({ where: { status: 'PAID', createdAt: { gte: d30 } }, _sum: { amount: true } }),
+  const [orderCount, bookingCount, deliveredCount, lowStock, pendingApprovals, recentOrders, recentBookings, chartOrders] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: d30 } } }),
     prisma.booking.count({ where: { createdAt: { gte: d30 } } }),
     prisma.order.count({ where: { status: 'DELIVERED' } }),
@@ -39,28 +38,21 @@ export default async function AdminOverview() {
     }),
   ]);
 
-  /* Gateway truth (360Pay / LibertePay): live wallet balances read
-     through the chain — the same figures the merchant portal shows —
-     plus this store's own slice of gateway payments, and the actual
-     products those store sales moved. Live reads win; the portal
-     snapshot in gateway-snapshot.ts is the fallback and the source
-     for the all-time transaction counts the chain cannot report. */
-  const [balances, storeGwAgg, storeGwByStatus, soldItems] = await Promise.all([
+  /* Revenue is the money actually collected through the payment
+     gateway — read live from the collections wallet (the same
+     figure the merchant portal shows), never a sum of the store's
+     demo-era payment rows. The last verified portal figure
+     (gateway-snapshot.ts) is the silent fallback if the live read
+     is unavailable. soldItems feeds the Top products panel. */
+  const [balances, soldItems] = await Promise.all([
     fetchLibertePayBalances(),
-    prisma.payment.aggregate({ where: { provider: 'LIBERTEPAY360', status: 'PAID' }, _sum: { amount: true }, _count: true }),
-    prisma.payment.groupBy({ by: ['status'], where: { provider: 'LIBERTEPAY360' }, _count: true }),
     prisma.orderItem.findMany({
       where: { order: { status: { in: ['PAID', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED'] } } },
       select: { name: true, image: true, price: true, qty: true, productId: true, orderId: true },
     }),
   ]);
 
-  const gwLive = balances.collections != null && balances.disbursement != null;
-  const gwCollections = balances.collections ?? GATEWAY_PORTAL_SNAPSHOT.collectionsGhs;
-  const gwDisbursement = balances.disbursement ?? GATEWAY_PORTAL_SNAPSHOT.disbursementGhs;
-  const storeGwTotal = storeGwByStatus.reduce((s, r) => s + r._count, 0);
-  const storeGwPaid = storeGwByStatus.find(r => r.status === 'PAID')?._count ?? 0;
-  const storeGwFailed = storeGwByStatus.find(r => r.status === 'FAILED')?._count ?? 0;
+  const gatewayRevenue = balances.collections ?? GATEWAY_PORTAL_SNAPSHOT.collectionsGhs;
 
   const productMap = new Map<string, { name: string; image: string | null; productId: string | null; units: number; revenue: number; orderIds: Set<string> }>();
   for (const it of soldItems) {
@@ -74,7 +66,6 @@ export default async function AdminOverview() {
   }
   const topProducts = [...productMap.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8);
 
-  const revenue = paidAgg._sum.amount ?? 0;
   const aov = deliveredCount > 0
     ? (await prisma.order.aggregate({ where: { status: 'DELIVERED' }, _avg: { total: true } }))._avg.total ?? 0
     : 0;
@@ -105,44 +96,8 @@ export default async function AdminOverview() {
         </div>
       </div>
 
-      <section className="card p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-display text-base font-extrabold text-navy dark:text-white">
-            360Pay Gateway
-            <span className="ml-2 text-xs font-bold text-soft">{balances.merchantName ?? 'Tuguu Gabriel Ventures'} · {GATEWAY_PORTAL_SNAPSHOT.merchantId}</span>
-          </h2>
-          {gwLive ? (
-            <span className="rounded-full border border-line px-2.5 py-1 text-[11px] font-bold"><span className="text-success">●</span> LIVE FROM GATEWAY</span>
-          ) : (
-            <span className="rounded-full border border-line px-2.5 py-1 text-[11px] font-bold"><span className="text-warning">●</span> PORTAL SNAPSHOT · {GATEWAY_PORTAL_SNAPSHOT.asOf.toUpperCase()}</span>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-          <div className="rounded-xl border border-line p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Collections balance</p>
-            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(gwCollections)}</p>
-            <p className="mt-0.5 text-xs font-semibold text-soft">Wallet {balances.collectionsAccount ?? GATEWAY_PORTAL_SNAPSHOT.collectionsAccount}{balances.collections == null && ' · last verified 9 Oct 2026'}</p>
-          </div>
-          <div className="rounded-xl border border-line p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Disbursement balance</p>
-            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(gwDisbursement)}</p>
-            <p className="mt-0.5 text-xs font-semibold text-soft">Wallet {balances.disbursementAccount ?? GATEWAY_PORTAL_SNAPSHOT.disbursementAccount}{balances.disbursement == null && ' · last verified 9 Oct 2026'}</p>
-          </div>
-          <div className="rounded-xl border border-line p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Collected via this store</p>
-            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(storeGwAgg._sum.amount ?? 0)}</p>
-            <p className="mt-0.5 text-xs font-semibold text-soft">{storeGwTotal} gateway payment{storeGwTotal === 1 ? '' : 's'} · {storeGwPaid} successful · {storeGwFailed} failed</p>
-          </div>
-          <div className="rounded-xl border border-line p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-soft">Gateway transactions · all time</p>
-            <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{GATEWAY_PORTAL_SNAPSHOT.totalTransactions.toLocaleString('en-GB')}</p>
-            <p className="mt-0.5 text-xs font-semibold text-soft">{GATEWAY_PORTAL_SNAPSHOT.successfulTransactions} successful · {GATEWAY_PORTAL_SNAPSHOT.failedTransactions.toLocaleString('en-GB')} failed · portal {GATEWAY_PORTAL_SNAPSHOT.asOf}</p>
-          </div>
-        </div>
-      </section>
-
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Kpi label="Revenue · 30d" value={ghs(revenue, { cents: false })} sub="Confirmed store payments" href="/admin/reports" tone="text-navy dark:text-white" />
+        <Kpi label="Revenue" value={ghs(gatewayRevenue, { cents: false })} sub="Collected via mobile money" href="/admin/reports" tone="text-navy dark:text-white" />
         <Kpi label="Orders · 30d" value={String(orderCount)} sub="All statuses" href="/admin/orders" />
         <Kpi label="Bookings · 30d" value={String(bookingCount)} sub="Service requests" href="/admin/bookings" />
         <Kpi label="Avg order value" value={ghs(aov, { cents: false })} sub={`${deliveredCount} delivered`} href="/admin/reports" />
