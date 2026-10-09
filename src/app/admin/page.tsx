@@ -30,7 +30,7 @@ export default async function AdminOverview() {
     prisma.order.count({ where: { status: 'DELIVERED' } }),
     prisma.product.count({ where: { stock: { lte: 5 }, status: 'PUBLISHED' } }),
     prisma.payment.count({ where: { status: 'AWAITING_APPROVAL' } }),
-    prisma.order.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true } }, items: { select: { qty: true } } } }),
+    prisma.order.findMany({ take: 8, orderBy: { createdAt: 'desc' }, include: { user: { select: { name: true } }, items: { select: { qty: true, name: true, image: true } } } }),
     prisma.booking.findMany({ take: 5, orderBy: { createdAt: 'desc' }, include: { service: { select: { name: true } } } }),
     prisma.order.findMany({
       where: { status: { in: ['PAID', 'DELIVERED', 'OUT_FOR_DELIVERY', 'PROCESSING'] }, updatedAt: { gte: d14 } },
@@ -105,6 +105,37 @@ export default async function AdminOverview() {
         <Kpi label="Transfer approvals" value={String(pendingApprovals)} sub="Awaiting review" href="/admin/payments?status=AWAITING_APPROVAL" tone={pendingApprovals > 0 ? 'text-danger' : 'text-success'} />
       </div>
 
+      <div className="card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-base font-extrabold text-navy dark:text-white">Top products by revenue</h2>
+          <Link href="/admin/products" className="text-xs font-bold text-blue hover:underline">All products →</Link>
+        </div>
+        <ul className="grid gap-2.5 md:grid-cols-2">
+          {topProducts.map((p, i) => (
+            <li key={p.productId ?? p.name}>
+              <Link href={p.productId ? `/admin/products/${p.productId}` : '/admin/products'} className="flex items-center gap-3 rounded-xl border border-line p-3 transition-colors hover:border-blue">
+                <span className="w-5 shrink-0 text-center font-display text-sm font-extrabold text-soft">{i + 1}</span>
+                {p.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={p.image} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
+                ) : (
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-mist font-display text-lg font-extrabold text-navy dark:text-white">{p.name.slice(0, 1)}</span>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{p.name}</p>
+                  <p className="text-xs text-soft">{p.units} sold · {p.orderIds.size} order{p.orderIds.size === 1 ? '' : 's'}</p>
+                  <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-mist">
+                    <span className="block h-full rounded-full bg-[#22D3EE]" style={{ width: `${Math.max(4, Math.round((p.revenue / (topProducts[0]?.revenue || 1)) * 100))}%` }} />
+                  </span>
+                </div>
+                <span className="shrink-0 font-display text-[15px] font-extrabold text-navy dark:text-white">{ghs(p.revenue)}</span>
+              </Link>
+            </li>
+          ))}
+          {topProducts.length === 0 && <li className="text-sm text-soft">No product sales yet.</li>}
+        </ul>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-5">
         <div className="card p-4 xl:col-span-3">
           <div className="mb-2 flex items-center justify-between">
@@ -133,43 +164,16 @@ export default async function AdminOverview() {
         </div>
       </div>
 
-      <div className="card p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-base font-extrabold text-navy dark:text-white">Top products by revenue</h2>
-          <Link href="/admin/products" className="text-xs font-bold text-blue hover:underline">All products →</Link>
-        </div>
-        <ul className="grid gap-2.5 md:grid-cols-2">
-          {topProducts.map(p => (
-            <li key={p.productId ?? p.name}>
-              <Link href={p.productId ? `/admin/products/${p.productId}` : '/admin/products'} className="flex items-center gap-3 rounded-xl border border-line p-3 transition-colors hover:border-blue">
-                {p.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.image} alt="" className="h-11 w-11 shrink-0 rounded-lg object-cover" />
-                ) : (
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-mist font-display text-lg font-extrabold text-navy dark:text-white">{p.name.slice(0, 1)}</span>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">{p.name}</p>
-                  <p className="text-xs text-soft">{p.units} sold · {p.orderIds.size} order{p.orderIds.size === 1 ? '' : 's'}</p>
-                </div>
-                <span className="shrink-0 font-display text-[15px] font-extrabold text-navy dark:text-white">{ghs(p.revenue)}</span>
-              </Link>
-            </li>
-          ))}
-          {topProducts.length === 0 && <li className="text-sm text-soft">No product sales yet.</li>}
-        </ul>
-      </div>
-
       <div className="card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <h2 className="font-display text-base font-extrabold text-navy dark:text-white">Recent orders</h2>
           <Link href="/admin/orders" className="text-xs font-bold text-blue hover:underline">View all →</Link>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[760px] text-sm">
             <thead>
               <tr className="border-y border-line bg-mist text-left text-[11px] font-bold uppercase tracking-wide text-soft">
-                <th className="px-4 py-2">Order</th><th className="px-4 py-2">Customer</th><th className="px-4 py-2">Items</th>
+                <th className="px-4 py-2">Order</th><th className="px-4 py-2">Customer</th><th className="px-4 py-2">Products</th>
                 <th className="px-4 py-2">Total</th><th className="px-4 py-2">Status</th><th className="px-4 py-2">Placed</th>
               </tr>
             </thead>
@@ -180,7 +184,28 @@ export default async function AdminOverview() {
                     <Link href={`/admin/orders/${o.id}`} className="font-bold text-blue hover:underline">{o.orderNo}</Link>
                   </td>
                   <td className="px-4 py-2.5">{o.user?.name ?? o.email}</td>
-                  <td className="px-4 py-2.5">{o.items.reduce((s, i) => s + i.qty, 0)}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex shrink-0 gap-1">
+                        {o.items.slice(0, 3).map((it, idx) => it.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img key={idx} src={it.image} alt="" className="h-8 w-8 rounded-md object-cover" />
+                        ) : (
+                          <span key={idx} className="flex h-8 w-8 items-center justify-center rounded-md bg-mist text-[10px] font-extrabold text-navy dark:text-white">{it.name.slice(0, 1)}</span>
+                        ))}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block max-w-[230px] truncate font-semibold">
+                          {o.items[0]?.name ?? '—'}{o.items[0] && o.items[0].qty > 1 ? ` ×${o.items[0].qty}` : ''}
+                        </span>
+                        <span className="block text-xs text-soft">
+                          {o.items.length > 1
+                            ? `+${o.items.length - 1} more product${o.items.length > 2 ? 's' : ''} · ${o.items.reduce((s, i) => s + i.qty, 0)} items`
+                            : `${o.items.reduce((s, i) => s + i.qty, 0)} item${o.items.reduce((s, i) => s + i.qty, 0) === 1 ? '' : 's'}`}
+                        </span>
+                      </span>
+                    </div>
+                  </td>
                   <td className="px-4 py-2.5 font-bold">{ghs(o.total)}</td>
                   <td className="px-4 py-2.5"><StatusBadge status={o.status} /></td>
                   <td className="px-4 py-2.5 whitespace-nowrap text-soft">{fmtDateTime(o.createdAt)}</td>
