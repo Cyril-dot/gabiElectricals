@@ -10,6 +10,7 @@ type Pay = {
   payerPhone: string | null; payerEmail: string | null; refundNote: string | null; proofImage: string | null;
   createdAt: string; confirmedAt: string | null; expiresAt: string | null;
   orderNo: string | null; bookingNo: string | null; linkLabel: string | null; linkCode: string | null;
+  city: string | null; region: string | null; landmark: string | null;
   items: { name: string; image: string | null; qty: number; price: number }[];
   orderId: string | null; bookingId: string | null; linkId: string | null; events: Ev[];
 };
@@ -133,7 +134,10 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
               <tr key={p.id} className="border-b border-line/60 last:border-0 hover:bg-mist/50">
                 <td className={`${tdCls} whitespace-nowrap text-xs text-soft`}>{new Date(p.createdAt).toLocaleString()}</td>
                 <td className={`${tdCls} whitespace-nowrap font-mono text-xs font-bold`}>{p.payerPhone ?? '—'}</td>
-                <td className={`${tdCls} text-xs`}>{p.payerName ?? '—'}</td>
+                <td className={`${tdCls} text-xs`}>
+                  {p.payerName ?? '—'}
+                  {p.city && <span className="block text-[10px] text-soft">{p.city}{p.region ? `, ${p.region}` : ''}</span>}
+                </td>
                 <td className={tdCls}>
                   {p.items.length > 0 ? (
                     <div className="flex items-center gap-2">
@@ -162,6 +166,12 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
                   </div>
                   {open === p.id && (
                     <div className="mt-2 w-80 rounded-lg border border-line bg-white p-3 dark:bg-navy-700">
+                      {p.city && (
+                        <p className="mb-2 text-xs text-soft">
+                          <span className="font-bold text-navy dark:text-white">Location:</span>{' '}
+                          {p.city}{p.region ? `, ${p.region}` : ''}{p.landmark ? ` — near ${p.landmark}` : ''}
+                        </p>
+                      )}
                       {p.items.length > 0 && (
                         <div className="mb-3">
                           <p className="mb-2 text-xs font-bold text-navy dark:text-white">Products bought</p>

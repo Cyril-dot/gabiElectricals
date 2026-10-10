@@ -32,6 +32,9 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
       select: {
         orderNo: true,
         user: { select: { name: true } },
+        addrCity: true,
+        addrRegion: true,
+        addrLandmark: true,
         items: { select: { name: true, image: true, qty: true, price: true } },
       },
     },
@@ -76,6 +79,7 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
       payerPhone: p.payerPhone, payerEmail: p.payerEmail, refundNote: p.refundNote, proofImage: p.proofImage,
       createdAt: p.createdAt.toISOString(), confirmedAt: p.confirmedAt?.toISOString() ?? null, expiresAt: p.expiresAt?.toISOString() ?? null,
       orderNo: p.order?.orderNo ?? null, bookingNo: p.booking?.bookingNo ?? null, linkLabel: p.link?.label ?? null, linkCode: p.link?.code ?? null,
+      city: p.order?.addrCity ?? null, region: p.order?.addrRegion ?? null, landmark: p.order?.addrLandmark ?? null,
       items: (p.order?.items ?? []).map((it) => ({ name: it.name, image: it.image, qty: it.qty, price: it.price })),
       orderId: p.orderId, bookingId: p.bookingId, linkId: p.linkId,
       events: (p.events ?? []).map((e) => ({ type: e.type, note: e.note, at: e.at.toISOString() })),
