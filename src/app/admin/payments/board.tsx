@@ -10,6 +10,7 @@ type Pay = {
   payerPhone: string | null; payerEmail: string | null; refundNote: string | null; proofImage: string | null;
   createdAt: string; confirmedAt: string | null; expiresAt: string | null;
   orderNo: string | null; bookingNo: string | null; linkLabel: string | null; linkCode: string | null;
+  items: { name: string; image: string | null; qty: number; price: number }[];
   orderId: string | null; bookingId: string | null; linkId: string | null; events: Ev[];
 };
 type Link = { id: string; code: string; label: string; amount: number; forType: string; status: string; createdAt: string; expiresAt: string | null; paid: boolean };
@@ -123,16 +124,29 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
       </form>
       <Msg msg={msg} />
 
-      {/* Table — ShinobiPay transactions layout: Date · Number · Name · Transaction · Amount · Network · Status */}
+      {/* Table — ShinobiPay transactions layout + the products each payment bought */}
       <div className={`${tableWrap} mb-8`}>
-        <table className="w-full min-w-[900px]">
-          <thead className="border-b border-line bg-mist"><tr>{['Date', 'Number', 'Name', 'Transaction', 'Amount', 'Network', 'Status', 'Actions'].map((h) => <th key={h} className={thCls}>{h}</th>)}</tr></thead>
+        <table className="w-full min-w-[1080px]">
+          <thead className="border-b border-line bg-mist"><tr>{['Date', 'Number', 'Name', 'Product', 'Transaction', 'Amount', 'Network', 'Status', 'Actions'].map((h) => <th key={h} className={thCls}>{h}</th>)}</tr></thead>
           <tbody>
             {payments.map((p) => (
               <tr key={p.id} className="border-b border-line/60 last:border-0 hover:bg-mist/50">
                 <td className={`${tdCls} whitespace-nowrap text-xs text-soft`}>{new Date(p.createdAt).toLocaleString()}</td>
                 <td className={`${tdCls} whitespace-nowrap font-mono text-xs font-bold`}>{p.payerPhone ?? '—'}</td>
                 <td className={`${tdCls} text-xs`}>{p.payerName ?? '—'}</td>
+                <td className={tdCls}>
+                  {p.items.length > 0 ? (
+                    <div className="flex items-center gap-2">
+                      {p.items[0].image
+                        ? <img src={p.items[0].image} alt="" className="h-9 w-9 shrink-0 rounded-lg border border-line object-cover" />
+                        : <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-line bg-mist text-[9px] text-soft">GE</div>}
+                      <div className="min-w-0">
+                        <p className="max-w-44 truncate text-xs font-bold text-navy dark:text-white">{p.items[0].name} <span className="font-semibold text-soft">×{p.items[0].qty}</span></p>
+                        {p.items.length > 1 && <p className="text-[10px] text-soft">+{p.items.length - 1} more product{p.items.length > 2 ? 's' : ''}</p>}
+                      </div>
+                    </div>
+                  ) : <span className="text-xs text-soft">{entityLabel(p)}</span>}
+                </td>
                 <td className={tdCls}>
                   <span className="font-mono text-xs font-bold">{p.providerRef ?? p.reference}</span>
                   <span className="block text-[10px] text-soft">{p.reference} · {entityLabel(p)}</span>
@@ -147,7 +161,23 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
                     {p.status === 'AWAITING_APPROVAL' && <button disabled={busy === p.id} className="btn-gold px-2.5 py-1 text-xs" onClick={() => act(p.id, () => api(`/api/admin/payments/${p.id}/approve`, { method: 'POST', body: JSON.stringify({ action: 'APPROVE' }) }))}>Approve</button>}
                   </div>
                   {open === p.id && (
-                    <div className="mt-2 w-72 rounded-lg border border-line bg-white p-3 dark:bg-navy-700">
+                    <div className="mt-2 w-80 rounded-lg border border-line bg-white p-3 dark:bg-navy-700">
+                      {p.items.length > 0 && (
+                        <div className="mb-3">
+                          <p className="mb-2 text-xs font-bold text-navy dark:text-white">Products bought</p>
+                          <ul className="space-y-1.5">
+                            {p.items.map((it, i) => (
+                              <li key={i} className="flex items-center gap-2 text-xs">
+                                {it.image
+                                  ? <img src={it.image} alt="" className="h-7 w-7 shrink-0 rounded-md border border-line object-cover" />
+                                  : <div className="h-7 w-7 shrink-0 rounded-md border border-line bg-mist" />}
+                                <span className="min-w-0 flex-1 truncate">{it.name} <span className="text-soft">×{it.qty}</span></span>
+                                <span className="font-bold">{ghs(it.price * it.qty)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       <p className="mb-2 text-xs font-bold text-navy dark:text-white">Event timeline</p>
                       <Timeline events={p.events} />
                       {p.proofImage && <a className="mt-2 block text-xs text-blue underline" href={p.proofImage} target="_blank" rel="noreferrer">View transfer proof</a>}
