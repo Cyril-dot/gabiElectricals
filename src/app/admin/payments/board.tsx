@@ -6,13 +6,17 @@ import { ghs } from '@/lib/money';
 type Ev = { type: string; note: string | null; at: string };
 type Pay = {
   id: string; reference: string; amount: number; status: string; method: string; provider: string;
+  providerRef: string | null; payerName: string | null;
   payerPhone: string | null; payerEmail: string | null; refundNote: string | null; proofImage: string | null;
   createdAt: string; confirmedAt: string | null; expiresAt: string | null;
   orderNo: string | null; bookingNo: string | null; linkLabel: string | null; linkCode: string | null;
   orderId: string | null; bookingId: string | null; linkId: string | null; events: Ev[];
 };
 type Link = { id: string; code: string; label: string; amount: number; forType: string; status: string; createdAt: string; expiresAt: string | null; paid: boolean };
-type Props = { payments: Pay[]; awaiting: Pay[]; links: Link[]; counts: Record<string, number>; filters: Record<string, string> };
+type Summary = { paidCount: number; paidTotal: number; pendingCount: number };
+type Props = { payments: Pay[]; awaiting: Pay[]; links: Link[]; counts: Record<string, number>; filters: Record<string, string>; summary: Summary };
+
+const networkLabel = (m: string) => m === 'MOMO_MTN' ? 'MTN' : m === 'MOMO_TELECEL' ? 'Telecel' : m === 'MOMO_AT' ? 'AirtelTigo' : m;
 
 const STATUSES = ['PENDING', 'PAID', 'FAILED', 'REFUNDED', 'PARTIALLY_PAID', 'EXPIRED', 'AWAITING_APPROVAL'];
 const METHODS = ['MOMO_MTN', 'MOMO_TELECEL', 'MOMO_AT', 'CARD', 'BANK_TRANSFER', 'GHIPSS', 'QR', 'CASH', 'MANUAL_TRANSFER', 'PAY_ON_DELIVERY', 'WALLET'];
@@ -33,7 +37,7 @@ function Timeline({ events }: { events: Ev[] }) {
   );
 }
 
-export function PaymentBoard({ payments, awaiting, links, counts, filters }: Props) {
+export function PaymentBoard({ payments, awaiting, links, counts, filters, summary }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const { msg, setMsg } = useMsg();
@@ -55,12 +59,32 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters }: Pro
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-blue">Payments</p>
-          <h1 className="font-display text-2xl font-extrabold text-navy dark:text-white">Transactions & approval queue</h1>
+          <h1 className="font-display text-2xl font-extrabold text-navy dark:text-white">{filters.src === 'all' ? 'Transactions & approval queue' : 'LibertePay transactions'}</h1>
+          <div className="mt-2 flex gap-2 text-xs font-bold">
+            <a href="/admin/payments" className={filters.src !== 'all' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>LibertePay</a>
+            <a href="/admin/payments?src=all" className={filters.src === 'all' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>All sources</a>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
           {STATUSES.map((s) => counts[s] ? <Badge key={s} tone={payTone[s]}>{s} {counts[s]}</Badge> : null)}
         </div>
       </header>
+
+      {/* LibertePay summary — same shape as the ShinobiPay transactions list */}
+      <section className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="card p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-soft">Successful collections</p>
+          <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{summary.paidCount}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-soft">Total collected via LibertePay</p>
+          <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(summary.paidTotal)}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs font-bold uppercase tracking-widest text-soft">Pending at LibertePay</p>
+          <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{summary.pendingCount}</p>
+        </div>
+      </section>
 
       {/* Awaiting approval */}
       <section className="card mb-6 border-gold/50 p-4">
@@ -89,7 +113,8 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters }: Pro
 
       {/* Filters */}
       <form className="card mb-6 grid gap-3 p-4 md:grid-cols-6" method="get" action="/admin/payments">
-        <Field label="Search ref / phone"><input name="q" defaultValue={filters.q} className={inputCls} placeholder="GE_PAY_… or 024…" /></Field>
+        <input type="hidden" name="src" value={filters.src} />
+        <Field label="Search ref / phone"><input name="q" defaultValue={filters.q} className={inputCls} placeholder="GABI… / GE_PAY_… or 024…" /></Field>
         <Field label="Status"><select name="status" defaultValue={filters.status} className={inputCls}><option value="">All</option>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
         <Field label="Method"><select name="method" defaultValue={filters.method} className={inputCls}><option value="">All</option>{METHODS.map((m) => <option key={m}>{m}</option>)}</select></Field>
         <Field label="From"><input name="from" type="date" defaultValue={filters.from} className={inputCls} /></Field>
@@ -98,20 +123,23 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters }: Pro
       </form>
       <Msg msg={msg} />
 
-      {/* Table */}
+      {/* Table — ShinobiPay transactions layout: Date · Number · Name · Transaction · Amount · Network · Status */}
       <div className={`${tableWrap} mb-8`}>
-        <table className="w-full min-w-[820px]">
-          <thead className="border-b border-line bg-mist"><tr>{['Reference', 'Amount', 'Status', 'Method', 'Entity', 'Payer', 'Date', 'Actions'].map((h) => <th key={h} className={thCls}>{h}</th>)}</tr></thead>
+        <table className="w-full min-w-[900px]">
+          <thead className="border-b border-line bg-mist"><tr>{['Date', 'Number', 'Name', 'Transaction', 'Amount', 'Network', 'Status', 'Actions'].map((h) => <th key={h} className={thCls}>{h}</th>)}</tr></thead>
           <tbody>
             {payments.map((p) => (
               <tr key={p.id} className="border-b border-line/60 last:border-0 hover:bg-mist/50">
-                <td className={`${tdCls} font-mono text-xs font-bold`}>{p.reference}</td>
-                <td className={`${tdCls} font-bold`}>{ghs(p.amount)}</td>
+                <td className={`${tdCls} whitespace-nowrap text-xs text-soft`}>{new Date(p.createdAt).toLocaleString()}</td>
+                <td className={`${tdCls} whitespace-nowrap font-mono text-xs font-bold`}>{p.payerPhone ?? '—'}</td>
+                <td className={`${tdCls} text-xs`}>{p.payerName ?? '—'}</td>
+                <td className={tdCls}>
+                  <span className="font-mono text-xs font-bold">{p.providerRef ?? p.reference}</span>
+                  <span className="block text-[10px] text-soft">{p.reference} · {entityLabel(p)}</span>
+                </td>
+                <td className={`${tdCls} whitespace-nowrap font-bold`}>{ghs(p.amount)}</td>
+                <td className={`${tdCls} text-xs`}>{networkLabel(p.method)}<span className="block text-[10px] text-soft">{p.provider}</span></td>
                 <td className={tdCls}><Badge tone={payTone[p.status] ?? 'soft'}>{p.status}</Badge>{p.refundNote && <p className="mt-1 max-w-40 truncate text-[10px] text-soft" title={p.refundNote}>{p.refundNote}</p>}</td>
-                <td className={`${tdCls} text-xs`}>{p.method}<span className="block text-[10px] text-soft">{p.provider}</span></td>
-                <td className={`${tdCls} text-xs`}>{entityLabel(p)}</td>
-                <td className={`${tdCls} text-xs`}>{p.payerPhone ?? '—'}</td>
-                <td className={`${tdCls} text-xs text-soft`}>{new Date(p.createdAt).toLocaleDateString()}</td>
                 <td className={tdCls}>
                   <div className="flex flex-wrap gap-1.5">
                     <button className="btn-ghost px-2.5 py-1 text-xs" onClick={() => setOpen(open === p.id ? null : p.id)}>{open === p.id ? 'Hide' : 'Detail'}</button>
