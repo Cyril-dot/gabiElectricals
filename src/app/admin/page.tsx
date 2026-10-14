@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ghs } from '@/lib/money';
-import { fetchLibertePayBalances } from '@/lib/gateway';
-import { GATEWAY_PORTAL_SNAPSHOT } from '@/lib/gateway-snapshot';
 import { Icon, ICONS, StatusBadge, fmtDateTime } from './_ui';
 import { SalesChart } from './_Chart';
 
@@ -38,21 +36,20 @@ export default async function AdminOverview() {
     }),
   ]);
 
-  /* Revenue is the money actually collected through the payment
-     gateway — read live from the collections wallet (the same
-     figure the merchant portal shows), never a sum of the store's
-     demo-era payment rows. The last verified portal figure
-     (gateway-snapshot.ts) is the silent fallback if the live read
-     is unavailable. soldItems feeds the Top products panel. */
-  const [balances, soldItems] = await Promise.all([
-    fetchLibertePayBalances(),
+  /* Revenue is this store's own confirmed money: the sum of its
+     PAID payment records — the same figure the Transactions page
+     lists. The LibertePay gateway was disabled on the owner's order
+     (2026-10-14), so the screens no longer read the shared gateway
+     wallet. soldItems feeds the Top products panel. */
+  const [paidAgg, soldItems] = await Promise.all([
+    prisma.payment.aggregate({ where: { status: 'PAID' }, _sum: { amount: true } }),
     prisma.orderItem.findMany({
       where: { order: { status: { in: ['PAID', 'PROCESSING', 'OUT_FOR_DELIVERY', 'DELIVERED'] } } },
       select: { name: true, image: true, price: true, qty: true, productId: true, orderId: true },
     }),
   ]);
 
-  const gatewayRevenue = balances.collections ?? GATEWAY_PORTAL_SNAPSHOT.collectionsGhs;
+  const storeRevenue = paidAgg._sum.amount ?? 0;
 
   const productMap = new Map<string, { name: string; image: string | null; productId: string | null; units: number; revenue: number; orderIds: Set<string> }>();
   for (const it of soldItems) {
@@ -97,7 +94,7 @@ export default async function AdminOverview() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        <Kpi label="Revenue" value={ghs(gatewayRevenue, { cents: false })} sub="Collected via mobile money" href="/admin/reports" tone="text-navy dark:text-white" />
+        <Kpi label="Revenue" value={ghs(storeRevenue, { cents: false })} sub="Confirmed store payments" href="/admin/reports" tone="text-navy dark:text-white" />
         <Kpi label="Orders · 30d" value={String(orderCount)} sub="All statuses" href="/admin/orders" />
         <Kpi label="Bookings · 30d" value={String(bookingCount)} sub="Service requests" href="/admin/bookings" />
         <Kpi label="Avg order value" value={ghs(aov, { cents: false })} sub={`${deliveredCount} delivered`} href="/admin/reports" />
