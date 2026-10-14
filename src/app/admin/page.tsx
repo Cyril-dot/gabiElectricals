@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/db';
 import { ghs } from '@/lib/money';
+import { GATEWAY_PORTAL_SNAPSHOT } from '@/lib/gateway-snapshot';
 import { Icon, ICONS, StatusBadge, fmtDateTime } from './_ui';
 import { SalesChart } from './_Chart';
 
@@ -100,6 +101,14 @@ export default async function AdminOverview() {
         <Kpi label="Avg order value" value={ghs(aov, { cents: false })} sub={`${deliveredCount} delivered`} href="/admin/reports" />
         <Kpi label="Low stock" value={String(lowStock)} sub="≤ 5 units — restock" href="/admin/products?low=1" tone={lowStock > 0 ? 'text-warning' : 'text-success'} />
         <Kpi label="Transfer approvals" value={String(pendingApprovals)} sub="Awaiting review" href="/admin/payments?status=AWAITING_APPROVAL" tone={pendingApprovals > 0 ? 'text-danger' : 'text-success'} />
+      </div>
+
+      <div className="card flex flex-wrap items-center justify-between gap-2 p-4">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-soft">All-time collected via gateway</p>
+          <p className="mt-0.5 text-xs font-semibold text-soft">LibertePay merchant portal — Tuguu Gabriel Ventures (all businesses on the account) · {GATEWAY_PORTAL_SNAPSHOT.asOf}</p>
+        </div>
+        <p className="font-display text-xl font-extrabold text-navy dark:text-white md:text-2xl">{ghs(GATEWAY_PORTAL_SNAPSHOT.allTimeCollectedGhs)}</p>
       </div>
 
       <div className="card p-4">
