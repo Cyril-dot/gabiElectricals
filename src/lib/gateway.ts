@@ -393,6 +393,18 @@ export async function initiatePayment(args: InitArgs): Promise<InitResult> {
     return { reference, status: 'PENDING', authUrl, pollUrl: `/api/payments/status/${reference}`, expiresAt: undefined };
   }
 
+  // ── live mode with no provider configured ──
+  // The LibertePay chain branch above is off (seal removed) and no Paystack
+  // key is set. Falling through to the sandbox here would persist a MOCK
+  // payment that tells the customer to approve a prompt that is never sent
+  // and can never settle (the sandbox completion route is demo-only).
+  // Fail it honestly instead; offline methods keep working below.
+  if (!DEMO_MODE && args.method !== 'MANUAL_TRANSFER' && args.method !== 'PAY_ON_DELIVERY') {
+    const unavailable = 'Online payments are temporarily unavailable. Please choose Manual Transfer or Pay on Delivery.';
+    await persist(reference, args, 'FAILED', { provider: 'NONE', unavailable: true, prompt: unavailable });
+    return { reference, status: 'FAILED', prompt: unavailable, pollUrl: `/api/payments/status/${reference}`, expiresAt: undefined };
+  }
+
   // ── sandbox gateway ──
   let status: InitResult['status'] = 'PENDING';
   let prompt: string | undefined;
