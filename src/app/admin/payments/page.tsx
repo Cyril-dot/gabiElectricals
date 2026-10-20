@@ -9,16 +9,18 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
   const sp = await searchParams;
   const status = sp.status;
   const method = sp.method;
-  // The transactions list is the LibertePay list by default (the store's
-  // 360Pay payments, each carrying its LibertePay GABI reference); ?src=all
-  // shows every provider's payments like the old board did.
-  const src = sp.src === 'all' ? 'all' : 'libertepay';
+  // The transactions list is a single provider's list by default (the
+  // LibertePay 360Pay payments, each carrying its GABI provider reference);
+  // ?src=mojopay shows the MojoPay collections and ?src=all shows every
+  // provider's payments like the old board did.
+  const src = sp.src === 'all' ? 'all' : sp.src === 'mojopay' ? 'mojopay' : 'libertepay';
+  const srcProvider = src === 'mojopay' ? 'MOJOPAY' : 'LIBERTEPAY360';
   const q = (sp.q ?? '').trim();
   const from = sp.from ? new Date(`${sp.from}T00:00:00`) : undefined;
   const to = sp.to ? new Date(`${sp.to}T23:59:59`) : undefined;
 
   const where: Record<string, unknown> = {};
-  if (src === 'libertepay') where.provider = 'LIBERTEPAY360';
+  if (src !== 'all') where.provider = srcProvider;
   if (status) where.status = status;
   if (method) where.method = method;
   if (from || to) where.createdAt = { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) };
@@ -43,7 +45,7 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
     events: { orderBy: { at: 'desc' as const }, take: 20 },
   };
 
-  const [payments, awaiting, links, counts, lpPaid, lpPending] = await Promise.all([
+  const [payments, awaiting, links, counts, srcPaid, srcPending] = await Promise.all([
     prisma.payment.findMany({
       where,
       include,
@@ -57,9 +59,9 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
       take: 20,
     }),
     prisma.paymentLink.findMany({ include: { payments: { select: { status: true } } }, orderBy: { createdAt: 'desc' }, take: 40 }),
-    prisma.payment.groupBy({ by: ['status'], where: src === 'libertepay' ? { provider: 'LIBERTEPAY360' } : {}, _count: { _all: true } }),
-    prisma.payment.aggregate({ where: { provider: 'LIBERTEPAY360', status: 'PAID' }, _count: { _all: true }, _sum: { amount: true } }),
-    prisma.payment.count({ where: { provider: 'LIBERTEPAY360', status: 'PENDING' } }),
+    prisma.payment.groupBy({ by: ['status'], where: src === 'all' ? {} : { provider: srcProvider }, _count: { _all: true } }),
+    prisma.payment.aggregate({ where: { provider: srcProvider, status: 'PAID' }, _count: { _all: true }, _sum: { amount: true } }),
+    prisma.payment.count({ where: { provider: srcProvider, status: 'PENDING' } }),
   ]);
 
   const ser = (p: (typeof payments)[number]) => {
@@ -99,7 +101,7 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
       links={linksData}
       counts={Object.fromEntries(counts.map((c) => [c.status, c._count._all]))}
       filters={{ status: status ?? '', method: method ?? '', q, from: sp.from ?? '', to: sp.to ?? '', src }}
-      summary={{ paidCount: lpPaid._count._all, paidTotal: lpPaid._sum.amount ?? 0, pendingCount: lpPending }}
+      summary={{ paidCount: srcPaid._count._all, paidTotal: srcPaid._sum.amount ?? 0, pendingCount: srcPending }}
     />
   );
 }

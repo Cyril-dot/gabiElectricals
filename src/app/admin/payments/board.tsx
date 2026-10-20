@@ -61,9 +61,10 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-blue">Payments</p>
-          <h1 className="font-display text-2xl font-extrabold text-navy dark:text-white">{filters.src === 'all' ? 'Transactions & approval queue' : 'LibertePay transactions'}</h1>
+          <h1 className="font-display text-2xl font-extrabold text-navy dark:text-white">{filters.src === 'all' ? 'Transactions & approval queue' : filters.src === 'mojopay' ? 'MojoPay transactions' : 'LibertePay transactions'}</h1>
           <div className="mt-2 flex gap-2 text-xs font-bold">
-            <a href="/admin/payments" className={filters.src !== 'all' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>LibertePay</a>
+            <a href="/admin/payments" className={filters.src === 'libertepay' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>LibertePay</a>
+            <a href="/admin/payments?src=mojopay" className={filters.src === 'mojopay' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>MojoPay</a>
             <a href="/admin/payments?src=all" className={filters.src === 'all' ? 'btn-primary px-3 py-1.5' : 'btn-ghost px-3 py-1.5'}>All sources</a>
           </div>
         </div>
@@ -72,18 +73,18 @@ export function PaymentBoard({ payments, awaiting, links, counts, filters, summa
         </div>
       </header>
 
-      {/* LibertePay summary — same shape as the ShinobiPay transactions list */}
+      {/* Provider summary — scoped to the selected source (LibertePay by default) */}
       <section className="mb-6 grid gap-3 sm:grid-cols-3">
         <div className="card p-4">
           <p className="text-xs font-bold uppercase tracking-widest text-soft">Successful collections</p>
           <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{summary.paidCount}</p>
         </div>
         <div className="card p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-soft">Total collected via LibertePay</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-soft">Total collected via {filters.src === 'mojopay' ? 'MojoPay' : 'LibertePay'}</p>
           <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{ghs(summary.paidTotal)}</p>
         </div>
         <div className="card p-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-soft">Pending at LibertePay</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-soft">Pending at {filters.src === 'mojopay' ? 'MojoPay' : 'LibertePay'}</p>
           <p className="mt-1 font-display text-2xl font-extrabold text-navy dark:text-white">{summary.pendingCount}</p>
         </div>
       </section>
