@@ -1,10 +1,25 @@
 // Payment provider abstraction. DEMO_MODE → built-in sandbox gateway that simulates
 // MTN MoMo / Telecel / AT / card / bank / QR with success, failure and pending outcomes.
+// LIVE + MOJOPAY_CLIENT_ID/SECRET → MojoPay direct MoMo push (see mojopay.ts);
+// LIVE + LIBERTEPAY_CHAIN_SEAL → the LibertePay sealed chain (MoMo);
 // LIVE + PAYSTACK_SECRET_KEY → real Paystack initialize/authorizations endpoints.
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { prisma, DEMO_MODE } from './db';
 import { normalizeGhPhone } from './ghana';
 import { ghs, round2 } from './money';
+import {
+  MOJOPAY_PROVIDER,
+  createMojoPayCollection,
+  extractMojoPayStatus,
+  isMojoPayMoMoMethod,
+  mapMojoPayStatus,
+  mojoPayConfigured,
+  mojoPayProviderCode,
+  normalizeMojoPayPhone,
+  verifyMojoPayCollection,
+} from './mojopay';
+
+export { MOJOPAY_PROVIDER } from './mojopay';
 
 export type GatewayMethod = 'MOMO_MTN' | 'MOMO_TELECEL' | 'MOMO_AT' | 'CARD' | 'BANK_TRANSFER' | 'GHIPSS' | 'QR' | 'MANUAL_TRANSFER' | 'PAY_ON_DELIVERY';
 
@@ -355,6 +370,113 @@ export async function refreshLibertePayPaymentStatus(payment: {
   return payment.status;
 }
 
+/* ------------------------------------------------------------------ *
+ * MojoPay branch — direct MoMo push on the store's own merchant
+ * account (Tuguu Gabriel Ventures). Selected in live mode when
+ * MOJOPAY_CLIENT_ID / MOJOPAY_CLIENT_SECRET are set (see
+ * selectOnlineProvider). merchant_reference is the SAME deterministic
+ * derivation as the LibertePay branch, so retrying a GE_PAY reference
+ * re-derives the same MojoPay reference and cannot double-debit; a
+ * duplicate-reference answer is "already initiated", never an error.
+ * ------------------------------------------------------------------ */
+async function initiateMojoPayPayment(reference: string, args: InitArgs): Promise<InitResult> {
+  const providerCode = mojoPayProviderCode(args.method);
+  const mobile = normalizeMojoPayPhone(args.phone);
+  const providerRef = deriveGabiProviderReference(reference);
+
+  const result = await createMojoPayCollection({
+    amount: args.amount,
+    mobile,
+    providerCode,
+    merchantReference: providerRef,
+    description: 'GabiElectricals payment',
+  });
+
+  if (result.outcome === 'created' && mapMojoPayStatus(extractMojoPayStatus(result.payload)) === 'FAILED') {
+    // MojoPay refused the collection outright — record it as FAILED
+    // rather than leaving a pending payment no prompt will ever settle.
+    await persist(reference, args, 'FAILED', {
+      provider: MOJOPAY_PROVIDER,
+      providerRef,
+      mojoPay: result.payload,
+    });
+    return { reference, status: 'FAILED', pollUrl: `/api/payments/status/${reference}` };
+  }
+
+  const prompt = `Approve the ${networkLabel(args.method)} prompt on ${maskPhone(args.phone ?? mobile)} within 5 minutes.`;
+  await persist(reference, args, 'PENDING', {
+    provider: MOJOPAY_PROVIDER,
+    providerRef,
+    prompt,
+    mojoPay: result.payload,
+    ...(result.outcome === 'duplicate' ? { duplicate: true } : {}),
+  });
+  return { reference, status: 'PENDING', prompt, pollUrl: `/api/payments/status/${reference}` };
+}
+
+/**
+ * Re-verify a pending MojoPay payment with the provider. Provider amounts
+ * are deliberately ignored: Payment.amount, created from our own order
+ * total, is the only amount this store trusts. Settlement goes through the
+ * same updateMany-from-PENDING gate as the LibertePay branch, so a
+ * repeated verify can never double-fulfil.
+ */
+export async function refreshMojoPayPaymentStatus(payment: {
+  id: string;
+  status: string;
+  provider: string;
+  metaJson: string;
+}): Promise<string> {
+  if (payment.provider !== MOJOPAY_PROVIDER || payment.status !== 'PENDING') return payment.status;
+
+  let meta: Record<string, unknown>;
+  try {
+    meta = JSON.parse(payment.metaJson) as Record<string, unknown>;
+  } catch {
+    return payment.status;
+  }
+  const providerRef = meta.providerRef;
+  if (typeof providerRef !== 'string' || !providerRef) return payment.status;
+
+  let verified: { status: number; payload: unknown };
+  try {
+    verified = await verifyMojoPayCollection(providerRef);
+  } catch {
+    return payment.status;
+  }
+  // 404 = no such transaction at MojoPay (yet); other non-2xx = no verdict.
+  if (verified.status < 200 || verified.status >= 300) return payment.status;
+
+  const rawStatus = extractMojoPayStatus(verified.payload);
+  const mapped = mapMojoPayStatus(rawStatus);
+  if (mapped === 'PAID') {
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'PENDING' },
+      data: { status: 'PAID', confirmedAt: new Date() },
+    });
+    if (updated.count === 1) {
+      await prisma.paymentEvent.create({
+        data: { paymentId: payment.id, type: 'SUCCESS', note: `MojoPay status ${rawStatus ?? 'SUCCEEDED'}` },
+      });
+      await applyPaidSideEffects(payment.id);
+    }
+    return 'PAID';
+  }
+  if (mapped === 'FAILED') {
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, status: 'PENDING' },
+      data: { status: 'FAILED' },
+    });
+    if (updated.count === 1) {
+      await prisma.paymentEvent.create({
+        data: { paymentId: payment.id, type: 'FAILED', note: `MojoPay status ${rawStatus ?? 'FAILED'}` },
+      });
+    }
+    return 'FAILED';
+  }
+  return payment.status;
+}
+
 export function paystackHash(secret: string, data: string) {
   return createHash('sha512').update(secret).update(data).digest('hex');
 }
@@ -368,15 +490,51 @@ export function buildQrPayload(link: string, amount: number, reference: string):
   return `${link}${link.includes('?') ? '&' : '?'}ref=${reference}&amount=${amount.toFixed(2)}`;
 }
 
+export type OnlineProvider = typeof MOJOPAY_PROVIDER | typeof LIBERTEPAY_PROVIDER | 'PAYSTACK';
+
+/**
+ * Which live provider (if any) an initiation routes to. DEMO_MODE always
+ * wins (sandbox). In live mode MojoPay takes MoMo methods when its
+ * credentials are set, then the LibertePay chain for MoMo when its seal
+ * is set, then Paystack for anything when its key is set. Null means no
+ * live provider applies — the caller falls through to the honest
+ * unavailable path (live) or the sandbox (demo).
+ */
+export function selectOnlineProvider(input: {
+  demoMode: boolean;
+  method: GatewayMethod;
+  mojoPay: boolean;
+  libertePay: boolean;
+  paystack: boolean;
+}): OnlineProvider | null {
+  if (input.demoMode) return null;
+  if (isMojoPayMoMoMethod(input.method) && input.mojoPay) return MOJOPAY_PROVIDER;
+  if (isLibertePayMoMoMethod(input.method) && input.libertePay) return LIBERTEPAY_PROVIDER;
+  if (input.paystack) return 'PAYSTACK';
+  return null;
+}
+
 export async function initiatePayment(args: InitArgs): Promise<InitResult> {
   const reference = ref();
   const expiresAt = args.method === 'QR' ? new Date(Date.now() + QR_TTL_MS) : null;
 
-  if (!DEMO_MODE && process.env.LIBERTEPAY_CHAIN_SEAL && isLibertePayMoMoMethod(args.method)) {
+  const onlineProvider = selectOnlineProvider({
+    demoMode: DEMO_MODE,
+    method: args.method,
+    mojoPay: mojoPayConfigured(),
+    libertePay: Boolean(process.env.LIBERTEPAY_CHAIN_SEAL),
+    paystack: Boolean(process.env.PAYSTACK_SECRET_KEY),
+  });
+
+  if (onlineProvider === MOJOPAY_PROVIDER) {
+    return initiateMojoPayPayment(reference, args);
+  }
+
+  if (onlineProvider === LIBERTEPAY_PROVIDER) {
     return initiateLibertePayPayment(reference, args);
   }
 
-  if (!DEMO_MODE && process.env.PAYSTACK_SECRET_KEY) {
+  if (onlineProvider === 'PAYSTACK') {
     // real provider path (documented in README) — hosted checkout
     const res = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -394,8 +552,9 @@ export async function initiatePayment(args: InitArgs): Promise<InitResult> {
   }
 
   // ── live mode with no provider configured ──
-  // The LibertePay chain branch above is off (seal removed) and no Paystack
-  // key is set. Falling through to the sandbox here would persist a MOCK
+  // No provider branch above matched (no MojoPay credentials, the
+  // LibertePay chain seal is removed, no Paystack key). Falling through
+  // to the sandbox here would persist a MOCK
   // payment that tells the customer to approve a prompt that is never sent
   // and can never settle (the sandbox completion route is demo-only).
   // Fail it honestly instead; offline methods keep working below.

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, DEMO_MODE } from '@/lib/db';
-import { refreshLibertePayPaymentStatus } from '@/lib/gateway';
+import { MOJOPAY_PROVIDER, refreshLibertePayPaymentStatus, refreshMojoPayPaymentStatus } from '@/lib/gateway';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +16,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ reference:
   let status = publicPayment.status;
   if (provider === 'LIBERTEPAY360' && status === 'PENDING') {
     status = await refreshLibertePayPaymentStatus({ id: p.id, status, provider, metaJson }) as typeof status;
+  }
+  if (provider === MOJOPAY_PROVIDER && status === 'PENDING') {
+    status = await refreshMojoPayPaymentStatus({ id: p.id, status, provider, metaJson }) as typeof status;
   }
   // sandbox QR expiry
   if (DEMO_MODE && status === 'PENDING' && publicPayment.expiresAt && publicPayment.expiresAt < new Date()) {
