@@ -22,7 +22,7 @@ const METHODS = [
   { id: 'MANUAL_TRANSFER', name: 'Manual transfer + proof', kind: 'icon' as const, icon: 'receipt_long', hint: 'Approved by our team' },
 ] as const;
 
-export function PaymentFlow({ link }: { link: LinkInfo }) {
+export function PaymentFlow({ link, demo }: { link: LinkInfo; demo: boolean }) {
   const [step, setStep] = useState<'choose' | 'details' | 'paying' | 'done' | 'failed' | 'awaiting'>('choose');
   const [method, setMethod] = useState<(typeof METHODS)[number]['id']>('MOMO_MTN');
   const [phone, setPhone] = useState('');
@@ -177,6 +177,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
           <span className="w-2 h-2 rounded-full bg-warning animate-pulse" /> Live status: PENDING — checking every few seconds…
         </div>
 
+        {demo && (
         <div className="border border-dashed border-warning/60 bg-warning/5 rounded-xl p-4 mb-4">
             <p className="text-xs font-black uppercase tracking-wide text-warning mb-2">Sandbox gateway (demo)</p>
             <div className="flex flex-wrap gap-2">
@@ -185,6 +186,7 @@ export function PaymentFlow({ link }: { link: LinkInfo }) {
             <button onClick={() => simulate('fail')} className="btn-ghost !py-2 text-sm">Decline</button>
           </div>
         </div>
+        )}
         <button onClick={() => { stopPolling(); setStep('choose'); }} className="text-xs text-soft underline">Cancel and change method</button>
       </div>
     );

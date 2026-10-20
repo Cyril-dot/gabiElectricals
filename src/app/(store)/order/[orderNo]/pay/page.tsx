@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { prisma } from '@/lib/db';
+import { prisma, DEMO_MODE } from '@/lib/db';
 import { getSettings } from '@/lib/settings';
 import { ghs } from '@/lib/money';
 import { Icon } from '@/components/Icon';
@@ -34,7 +34,7 @@ export default async function PayOrderPage({ params }: { params: Promise<{ order
             <Link href={`/order/${order.orderNo}`} className="block text-blue mt-2 hover:underline">View order →</Link>
           </div>
         ) : (
-          <PaySandbox orderNo={order.orderNo} due={due} email={order.email} phone={order.phone} qrExpiryMinutes={settings.payments.qrExpiryMinutes} />
+          <PaySandbox orderNo={order.orderNo} due={due} email={order.email} phone={order.phone} qrExpiryMinutes={settings.payments.qrExpiryMinutes} demo={DEMO_MODE} />
         )}
       </div>
     </div>

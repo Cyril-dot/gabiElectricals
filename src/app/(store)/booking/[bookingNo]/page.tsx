@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import QRCode from 'qrcode';
-import { prisma } from '@/lib/db';
+import { prisma, DEMO_MODE } from '@/lib/db';
 import { ghs } from '@/lib/money';
 import { getSession } from '@/lib/auth';
 import { getSettings } from '@/lib/settings';
@@ -191,7 +191,7 @@ export default async function BookingPage({ params, searchParams }: Props) {
             </div>
           </div>
 
-          {canPayPanel && <PayPanel reference={pay!} bookingNo={booking.bookingNo} amount={booking.payments.find(p => p.reference === pay)?.amount ?? booking.depositDue} />}
+          {canPayPanel && <PayPanel demo={DEMO_MODE} reference={pay!} bookingNo={booking.bookingNo} amount={booking.payments.find(p => p.reference === pay)?.amount ?? booking.depositDue} />}
 
           {/* Actions */}
           <div className="border-t border-line p-5 md:p-7">

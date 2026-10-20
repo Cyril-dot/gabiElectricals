@@ -17,8 +17,8 @@ const ICONS: Record<Choice, { icon?: IconName; glyph?: string }> = {
 
 type Init = { reference: string; status: string; prompt?: string; qrPayload?: string; expiresAt?: string; amount: number };
 
-export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
-  orderNo: string; due: number; email: string; phone: string; qrExpiryMinutes: number;
+export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes, demo }: {
+  orderNo: string; due: number; email: string; phone: string; qrExpiryMinutes: number; demo: boolean;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -144,7 +144,7 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
           <div className="bg-mist dark:bg-navy-700 rounded-xl p-4 text-sm">
             <p className="font-bold">Reference: <span className="font-mono">{init.reference}</span></p>
             {init.prompt && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="smartphone" size={14} />{init.prompt}</p>}
-            {method === 'CARD' && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="credit_card" size={14} />Sandbox: 4084 0840 8408 4081 · any future expiry · OTP 123456.</p>}
+            {method === 'CARD' && demo && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="credit_card" size={14} />Sandbox: 4084 0840 8408 4081 · any future expiry · OTP 123456.</p>}
             {method === 'QR' && leftSecs !== null && <p className="mt-1 inline-flex items-center gap-1.5"><Icon name="schedule" size={14} />QR expires in {Math.floor(leftSecs / 60)}:{String(leftSecs % 60).padStart(2, '0')} ({qrExpiryMinutes}-minute window).</p>}
             {init.qrPayload && (
               <div className="flex flex-col items-center mt-4">
@@ -156,6 +156,7 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
             <p className="mt-2 font-semibold" aria-live="polite">Status: <span className={`font-black ${pollStatus === 'PAID' ? 'text-success' : pollStatus === 'FAILED' ? 'text-danger' : 'text-warning'}`}>{pollStatus}</span> — waiting for confirmation…</p>
           </div>
 
+          {demo && (
           <div className="card p-4 border-dashed">
             <p className="text-[12.5px] font-bold text-soft uppercase tracking-wide mb-2">Demo sandbox — simulate the {method.startsWith('MOMO') ? 'payer' : 'bank'}</p>
             <div className="grid grid-cols-3 gap-2">
@@ -165,6 +166,7 @@ export function PaySandbox({ orderNo, due, email, phone, qrExpiryMinutes }: {
             </div>
             <p className="text-[11px] text-soft mt-2">Simulated outcomes also fire the real webhook path (status polling + OrderEvents + SMS/email logging).</p>
           </div>
+          )}
           <a href={`/order/${orderNo}`} className="block text-center text-sm font-bold text-blue hover:underline">I&apos;ll finish this payment later →</a>
         </div>
       )}

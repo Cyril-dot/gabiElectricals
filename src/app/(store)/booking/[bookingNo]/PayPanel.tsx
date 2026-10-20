@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { ghs } from '@/lib/money';
 import { Icon } from '@/components/Icon';
 
-export default function PayPanel({ reference, bookingNo, amount }: { reference: string; bookingNo: string; amount: number }) {
+export default function PayPanel({ reference, bookingNo, amount, demo }: { reference: string; bookingNo: string; amount: number; demo: boolean }) {
   const router = useRouter();
   const [status, setStatus] = useState<'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED'>('PENDING');
   const [busy, setBusy] = useState(false);
@@ -53,11 +53,13 @@ export default function PayPanel({ reference, bookingNo, amount }: { reference: 
           <p className="text-[11px] text-soft/80 mt-1 font-mono">Ref: {reference}</p>
         </div>
         <div className="flex flex-col gap-2 shrink-0" aria-label="Sandbox payment simulation (demo mode)">
+          {demo && (<>
           <p className="text-[10.5px] font-black uppercase tracking-wide text-soft">Demo gateway — simulate:</p>
           <div className="flex gap-2">
             <button onClick={() => simulate('success')} disabled={busy || status === 'PAID'} className="btn-gold px-3.5 py-2 text-[12px] inline-flex items-center gap-1.5"><Icon name="check" size={14} /> Approve (simulate)</button>
             <button onClick={() => simulate('fail')} disabled={busy || status === 'PAID'} className="btn-ghost px-3.5 py-2 text-[12px]">Decline</button>
           </div>
+          </>)}
           {status !== 'PAID' && (
             <a href={`/booking/${bookingNo}`} className="text-[11.5px] text-blue font-bold underline">Payment not working? Re-choose method</a>
           )}

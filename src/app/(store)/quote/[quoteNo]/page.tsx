@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma, DEMO_MODE } from '@/lib/db';
 import { ghs } from '@/lib/money';
 import { JSONLd } from '@/components/JsonLd';
 import QuoteActions from './QuoteActions';
@@ -101,7 +101,7 @@ export default async function QuotePage({ params }: Props) {
             </div>
 
             <QuoteActions quoteNo={quote.quoteNo} id={quote.id} status={effectiveStatus} amount={quote.amount}
-              phone={quote.customerPhone} email={quote.customerEmail} />
+              phone={quote.customerPhone} email={quote.customerEmail} demo={DEMO_MODE} />
 
             <p className="mt-5 text-[11.5px] text-soft border-t border-line pt-3">
               Prices include certified workmanship and warranty. Payment via MoMo, card, QR or bank transfer — invoice issued automatically.

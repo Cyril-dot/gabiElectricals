@@ -9,7 +9,7 @@ const METHODS = [
   { key: 'QR', label: 'Scan QR' }, { key: 'CARD', label: 'Card' },
 ];
 
-type Props = { quoteNo: string; id: string; status: string; amount: number; phone: string; email: string | null };
+type Props = { quoteNo: string; id: string; status: string; amount: number; phone: string; email: string | null; demo: boolean };
 
 export default function QuoteActions(p: Props) {
   const toast = useToast();
@@ -125,8 +125,8 @@ export default function QuoteActions(p: Props) {
           {prompt && <p className="text-[12.5px] text-soft mt-1">{prompt}</p>}
           <p className="text-[11px] text-soft/80 font-mono mt-1">Ref {ref} · polling every 4s</p>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => simulate('success')} disabled={busy} className="btn-gold px-4 py-2 text-[12.5px] inline-flex items-center gap-1.5"><Icon name="check" size={14} /> Simulate approval (demo)</button>
-            <button onClick={() => simulate('fail')} disabled={busy} className="btn-ghost px-4 py-2 text-[12.5px]">Simulate decline</button>
+            {p.demo && <button onClick={() => simulate('success')} disabled={busy} className="btn-gold px-4 py-2 text-[12.5px] inline-flex items-center gap-1.5"><Icon name="check" size={14} /> Simulate approval (demo)</button>}
+            {p.demo && <button onClick={() => simulate('fail')} disabled={busy} className="btn-ghost px-4 py-2 text-[12.5px]">Simulate decline</button>}
             {payStatus !== 'PENDING' && <button onClick={() => { setRef(null); }} className="btn-primary px-4 py-2 text-[12.5px]">Retry payment</button>}
           </div>
         </div>

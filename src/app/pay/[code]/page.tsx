@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { prisma } from '@/lib/db';
+import { prisma, DEMO_MODE } from '@/lib/db';
 import { PaymentFlow } from './payment-flow';
 import { Logo } from '@/components/Logo';
 import { Icon } from '@/components/Icon';
@@ -37,6 +37,7 @@ export default async function PayLinkPage({ params }: { params: Promise<{ code: 
             </div>
           ) : (
             <PaymentFlow
+              demo={DEMO_MODE}
               link={{
                 code: link.code,
                 label: link.label,
