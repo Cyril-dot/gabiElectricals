@@ -61,7 +61,7 @@ function TrackInner() {
           <div className="flex flex-wrap justify-between gap-3">
             <div>
               <p className="font-display text-xl font-extrabold">{data.orderNo}</p>
-              <p className="text-[13px] text-soft">{ghs(data.total)} · {new Date(data.createdAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })} · {data.fulfilment === 'PICKUP' ? 'Pickup' : `Deliver to ${data.addrCity ?? ''}${data.addrRegion ? ', ' + data.addrRegion : ''}`}</p>
+              <p className="text-[13px] text-soft">{ghs(data.total)} · {new Date(data.createdAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })} · {data.fulfilment === 'PICKUP' ? `Pickup${data.addrCity ? ' at ' + data.addrCity : ''}` : `Deliver to ${data.addrCity ?? ''}${data.addrRegion ? ', ' + data.addrRegion : ''}`}</p>
             </div>
             <span className={`text-[12px] font-black rounded-full px-3 py-1.5 self-start ${data.status === 'DELIVERED' ? 'bg-success/15 text-success' : data.status === 'PENDING_PAYMENT' ? 'bg-warning/15 text-warning' : 'bg-blue/10 text-blue'}`}>{data.status.replaceAll('_', ' ')}</span>
           </div>

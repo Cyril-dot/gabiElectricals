@@ -9,10 +9,11 @@ import { ghs } from '@/lib/money';
 
 type Zone = { id: string; name: string; regions: string[]; fee: number; freeOver: number | null; etaDays: number };
 
-export function CartClient({ tax, walletCredit, signedIn }: {
+export function CartClient({ tax, walletCredit, signedIn, pickupLocations }: {
   tax: { vatPct: number; levyPct: number };
   walletCredit: number;
   signedIn: boolean;
+  pickupLocations: string[];
 }) {
   const { items, setQty, remove, clear } = useCart();
   const toast = useToast();
@@ -20,6 +21,7 @@ export function CartClient({ tax, walletCredit, signedIn }: {
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneId] = useState('');
   const [pickup, setPickup] = useState(false);
+  const [pickupLocation, setPickupLocation] = useState(pickupLocations[0] ?? '');
   const [codeInput, setCodeInput] = useState('');
   const [coupon, setCoupon] = useState<{ code: string; type: 'PERCENT' | 'FIXED' | 'FREE_DELIVERY'; value: number; minSpend: number; maxDiscount?: number | null } | null>(null);
   const [catBySlug, setCatBySlug] = useState<Record<string, string>>({});
@@ -31,6 +33,8 @@ export function CartClient({ tax, walletCredit, signedIn }: {
       setZones(z);
       const saved = localStorage.getItem('ge_zone');
       setZoneId(saved && z.some(x => x.id === saved) ? saved : (z[0]?.id ?? ''));
+      const gp = localStorage.getItem('ge_pickup');
+      if (gp && pickupLocations.includes(gp)) setPickupLocation(gp);
       const cp = localStorage.getItem('ge_coupon');
       if (cp) { try { setCoupon(JSON.parse(cp)); } catch { /* noop */ } }
     }).catch(() => {});
@@ -175,12 +179,15 @@ export function CartClient({ tax, walletCredit, signedIn }: {
         <div>
           <p className="text-[13px] font-bold mb-1.5">Delivery estimate</p>
           <label className="sr-only" htmlFor="zone">Delivery zone</label>
-          <select id="zone" value={pickup ? '' : zoneId} onChange={e => {
+          <select id="zone" value={pickup ? `pickup:${pickupLocation}` : zoneId} onChange={e => {
             const v = e.target.value;
-            if (!v) { setPickup(true); }
+            if (v.startsWith('pickup:')) {
+              const loc = v.slice('pickup:'.length);
+              setPickup(true); setPickupLocation(loc); localStorage.setItem('ge_pickup', loc);
+            }
             else { setPickup(false); setZoneId(v); localStorage.setItem('ge_zone', v); }
           }} className="w-full border border-line rounded-xl px-3 py-2.5 text-sm bg-white dark:bg-navy outline-none focus:border-blue min-h-[44px]">
-            <option value="">Pick up at Osu shop (free)</option>
+            {pickupLocations.map(loc => <option key={loc} value={`pickup:${loc}`}>Pick up — {loc} (free)</option>)}
             {zones.map(z => <option key={z.id} value={z.id}>{z.name} — {ghs(z.fee, { cents: false })} · {z.etaDays}d{z.freeOver ? ` · free over ${ghs(z.freeOver)}` : ''}</option>)}
           </select>
           {!pickup && zone?.freeOver && pricing.subtotal >= zone.freeOver && (

@@ -5,7 +5,7 @@ import { useToast } from '@/components/Toast';
 import { Icon, ICONS } from './_ui';
 
 type Settings = {
-  business: { name: string; tagline: string; phone: string; whatsapp: string; email: string; address: string; gps: string; hours: string };
+  business: { name: string; tagline: string; phone: string; whatsapp: string; email: string; address: string; gps: string; hours: string; pickupLocations: string[] };
   tax: { vatPct: number; vatInclusive: boolean; levyPct: number };
   referral: { referrerReward: number; friendReward: number; minOrder: number; minPayout: number; affiliateDefaultPct: number };
   payments: { enabled: Record<string, boolean>; qrExpiryMinutes: number };

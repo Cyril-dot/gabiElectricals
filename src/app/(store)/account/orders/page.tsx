@@ -40,7 +40,7 @@ export default async function AccountOrders() {
                 <Link href={`/order/${o.orderNo}`} className="font-extrabold text-[14.5px] hover:text-blue">{o.orderNo}</Link>
                 <span className={`text-[10.5px] font-black px-2 py-1 rounded-md ${BADGE[o.status] ?? 'bg-mist text-soft'}`}>{o.status.replace(/_/g, ' ')}</span>
               </div>
-              <p className="text-[11.5px] text-soft mt-0.5">{new Date(o.createdAt).toLocaleString('en-GH', { dateStyle: 'medium' })} · {o.fulfilment === 'PICKUP' ? 'Store pickup' : 'Delivery'}{o.zone ? ` · ${o.zone.name}` : ''}</p>
+              <p className="text-[11.5px] text-soft mt-0.5">{new Date(o.createdAt).toLocaleString('en-GH', { dateStyle: 'medium' })} · {o.fulfilment === 'PICKUP' ? 'Store pickup' : 'Delivery'}{o.fulfilment === 'PICKUP' && o.addrCity ? ` · ${o.addrCity}` : ''}{o.zone ? ` · ${o.zone.name}` : ''}</p>
               <ul className="mt-3 space-y-1.5">
                 {o.items.slice(0, 3).map(it => (
                   <li key={it.id} className="flex items-center gap-2.5 text-[12.5px]">

@@ -28,6 +28,7 @@ const Schema = z.object({
     gps: z.string().trim().max(16).optional(),
   }).optional(),
   zoneId: z.string().max(40).optional(),
+  pickupLocation: z.string().trim().min(2).max(60).optional(),
   payment: z.object({
     method: z.enum(Methods),
     momoPhone: z.string().trim().optional(),
@@ -77,6 +78,9 @@ export async function POST(req: NextRequest) {
   }
   if (body.fulfilment === 'DELIVERY' && !body.address) {
     return NextResponse.json({ error: 'A delivery address is required.' }, { status: 400 });
+  }
+  if (body.fulfilment === 'PICKUP' && !body.pickupLocation) {
+    return NextResponse.json({ error: 'Choose a pickup location.' }, { status: 400 });
   }
 
   const session = await getSession();
@@ -149,8 +153,11 @@ export async function POST(req: NextRequest) {
         subtotal: pricing.subtotal, discount: pricing.discount, deliveryFee: pricing.deliveryFee,
         vat: pricing.vatPortion, levy: pricing.levy, total: pricing.total, walletUsed: pricing.walletUsed,
         couponId, zoneId: zone?.id ?? null, fulfilment: body.fulfilment,
-        addrRegion: body.address?.region, addrCity: body.address?.city, addrLandmark: body.address?.landmark,
-        addrGps: body.address?.gps, addrLine: body.address?.line,
+        addrRegion: body.fulfilment === 'PICKUP' ? null : body.address?.region,
+        addrCity: body.fulfilment === 'PICKUP' ? body.pickupLocation : body.address?.city,
+        addrLandmark: body.fulfilment === 'PICKUP' ? null : body.address?.landmark,
+        addrGps: body.fulfilment === 'PICKUP' ? null : body.address?.gps,
+        addrLine: body.fulfilment === 'PICKUP' ? null : body.address?.line,
         referralCode, giftNote: body.giftNote,
         invoiceNo: initialStatus === 'PAID' ? `INV-${orderNo.slice(3)}` : null,
         items: { create: orderItems },

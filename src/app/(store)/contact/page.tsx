@@ -32,6 +32,20 @@ export default async function ContactPage() {
               </div>
             ))}
           </div>
+          <div className="card p-5">
+            <div className="flex gap-3 mb-3">
+              <span className="grid place-items-center w-9 h-9 rounded-xl bg-blue/10 text-blue shrink-0"><Icon name="storefront" size={18} /></span>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-soft">Pickup locations</p>
+                <p className="font-bold text-[15px]">Collect your order free at any of these</p>
+              </div>
+            </div>
+            <ul className="grid sm:grid-cols-2 gap-2 text-sm font-semibold">
+              {biz.pickupLocations.map(loc => (
+                <li key={loc} className="flex items-center gap-2 rounded-lg bg-mist/60 dark:bg-white/5 px-3 py-2.5"><Icon name="location_on" size={16} />{loc}</li>
+              ))}
+            </ul>
+          </div>
           <div className="card overflow-hidden" aria-label="Map of Accra showing GabiElectricals location">
             <iframe
               title="GabiElectricals — Osu, Accra map"

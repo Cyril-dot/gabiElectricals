@@ -27,6 +27,7 @@ export default async function CheckoutPage() {
         tax={{ vatPct: settings.tax.vatPct, levyPct: settings.tax.levyPct }}
         me={user ? { name: user.name, email: user.email, phone: user.phone ?? '', walletCredit: user.walletCredit, addresses: user.addresses.map(a => ({ id: a.id, label: a.label, region: a.region, city: a.city, landmark: a.landmark ?? '', gps: a.gps ?? '', phone: a.phone, isDefault: a.isDefault })) } : null}
         shopAddress={settings.business.address}
+        pickupLocations={settings.business.pickupLocations}
       />
     </div>
   );

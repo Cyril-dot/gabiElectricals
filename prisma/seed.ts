@@ -367,7 +367,7 @@ async function main() {
 
   // ── settings, notifications, activity, misc ──
   const settings: Record<string, any> = {
-    business: { name: 'GabiElectricals', tagline: 'Premium Power. Trusted Safety. Done Right.', phone: '+233 24 100 2030', whatsapp: '+233 24 100 2030', email: 'hello@gabielectricals.com', address: 'Ghana House, 44 Liberation Link, Osu, Accra', gps: 'DG-123-4567', hours: 'Mon–Sat 7:00–18:00 · Emergency 24/7' },
+    business: { name: 'GabiElectricals', tagline: 'Premium Power. Trusted Safety. Done Right.', phone: '+233 24 100 2030', whatsapp: '+233 24 100 2030', email: 'hello@gabielectricals.com', address: 'Ghana House, 44 Liberation Link, Osu, Accra', gps: 'DG-123-4567', hours: 'Mon–Sat 7:00–18:00 · Emergency 24/7', pickupLocations: ['Kasoa Millennium City', 'Amasaman', 'Dawhenya', 'Nsakye'] },
     tax: { vatPct: 15, vatInclusive: true, levyPct: 2.5, appliesToServices: true },
     referral: { referrerReward: 20, friendReward: 20, minOrder: 150, minPayout: 100, affiliateDefaultPct: 5 },
     payments: { enabled: { MOMO_MTN: true, MOMO_TELECEL: true, MOMO_AT: true, CARD: true, BANK_TRANSFER: true, GHIPSS: true, QR: true, PAY_ON_DELIVERY: true, MANUAL_TRANSFER: true }, qrExpiryMinutes: 15 },

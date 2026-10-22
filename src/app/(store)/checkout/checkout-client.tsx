@@ -24,12 +24,13 @@ const METHOD_META: Record<string, { label: string; icon?: IconName; glyph?: stri
   MANUAL_TRANSFER: { label: 'Manual transfer (with proof)', icon: 'receipt_long', note: 'Transfer to our Ecobank/CalBank merchant account, then upload the receipt on the next screen — we approve within 30 minutes in business hours.' },
 };
 
-export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }: {
+export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress, pickupLocations }: {
   enabledMethods: string[];
   regions: Record<string, string[]>;
   tax: { vatPct: number; levyPct: number };
   me: { name: string; email: string; phone: string; walletCredit: number; addresses: AddressIn[] } | null;
   shopAddress: string;
+  pickupLocations: string[];
 }) {
   const { items, clear } = useCart();
   const toast = useToast();
@@ -38,6 +39,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneId] = useState('');
   const [fulfilment, setFulfilment] = useState<'DELIVERY' | 'PICKUP'>('DELIVERY');
+  const [pickupLocation, setPickupLocation] = useState(pickupLocations[0] ?? '');
   const [method, setMethod] = useState(enabledMethods[0] ?? 'MOMO_MTN');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -56,6 +58,8 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
       const saved = localStorage.getItem('ge_zone');
       setZoneId(saved && z.some(x => x.id === saved) ? saved : (z[0]?.id ?? ''));
     }).catch(() => {});
+    const gp = localStorage.getItem('ge_pickup');
+    if (gp && pickupLocations.includes(gp)) setPickupLocation(gp);
     const cp = localStorage.getItem('ge_coupon');
     if (cp) { try { setCoupon(JSON.parse(cp)); } catch { /* noop */ } }
     const ref = document.cookie.match(/ge_ref=([A-Z0-9]+)/i)?.[1];
@@ -90,6 +94,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
     if (!items.length) { toast('Your cart is empty.', 'err'); return; }
     if (!normalizeGhPhone(c.phone)) { setErr('Enter a valid Ghana mobile number (e.g. 024 123 4567).'); return; }
     if (fulfilment === 'DELIVERY' && (!a.city || !a.landmark)) { setErr('Fill in your city and a landmark — our riders rely on landmarks, not street names.'); return; }
+    if (fulfilment === 'PICKUP' && !pickupLocation) { setErr('Choose a pickup location.'); return; }
     if (a.gps && !/^[A-Za-z]{2}-\d{3}-\d{4}$/.test(a.gps)) { setErr('Ghana Post GPS looks like GA-123-4567. Check the format or leave it blank.'); return; }
     if (METHOD_META[method]?.phonePrompt && momoPhone && !normalizeGhPhone(momoPhone)) { setErr('That MoMo number does not look right.'); return; }
     setBusy(true);
@@ -101,6 +106,7 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
           fulfilment,
           address: fulfilment === 'DELIVERY' ? { region: a.region, city: a.city, line: a.line || undefined, landmark: a.landmark || undefined, gps: a.gps || undefined } : undefined,
           zoneId: fulfilment === 'DELIVERY' ? zoneId : undefined,
+          pickupLocation: fulfilment === 'PICKUP' ? pickupLocation : undefined,
           payment: { method, momoPhone: momoPhone || undefined },
           items: items.map(i => ({ slug: i.slug, qty: i.qty, install: !!i.install })),
           couponCode: coupon?.code,
@@ -158,11 +164,21 @@ export function CheckoutClient({ enabledMethods, regions, tax, me, shopAddress }
             {(['DELIVERY', 'PICKUP'] as const).map(f => (
               <button type="button" key={f} role="radio" aria-checked={fulfilment === f} onClick={() => setFulfilment(f)}
                 className={`rounded-xl border-2 p-3.5 text-left transition-colors min-h-[64px] ${fulfilment === f ? 'border-blue bg-blue/5' : 'border-line hover:border-blue/40'}`}>
-                <span className="font-bold text-sm inline-flex items-center gap-1.5"><Icon name={f === 'DELIVERY' ? 'local_shipping' : 'storefront'} size={16} />{f === 'DELIVERY' ? 'Deliver to me' : 'Pick up in Osu'}</span>
-                <span className="text-[12px] text-soft">{f === 'DELIVERY' ? (zone ? `${zone.name} · ${zone.etaDays}-2 days` : 'Fee by zone') : shopAddress}</span>
+                <span className="font-bold text-sm inline-flex items-center gap-1.5"><Icon name={f === 'DELIVERY' ? 'local_shipping' : 'storefront'} size={16} />{f === 'DELIVERY' ? 'Deliver to me' : 'Pick up'}</span>
+                <span className="block text-[12px] text-soft">{f === 'DELIVERY' ? (zone ? `${zone.name} · ${zone.etaDays}-2 days` : 'Fee by zone') : (pickupLocation || `Free · ${pickupLocations.length} locations`)}</span>
               </button>
             ))}
           </div>
+
+          {fulfilment === 'PICKUP' && (
+            <div className="mb-4">
+              <label htmlFor="pickup-loc" className={labelCls}>Pickup location</label>
+              <select id="pickup-loc" required value={pickupLocation} onChange={e => { setPickupLocation(e.target.value); localStorage.setItem('ge_pickup', e.target.value); }} className={inputCls}>
+                {pickupLocations.map(loc => <option key={loc} value={loc}>{loc} — free pickup</option>)}
+              </select>
+              <p className="text-[11.5px] text-soft mt-1">Collect from any of our {pickupLocations.length} locations — pickup is always free. Our main workshop stays at {shopAddress}.</p>
+            </div>
+          )}
 
           {fulfilment === 'DELIVERY' && (
             <>

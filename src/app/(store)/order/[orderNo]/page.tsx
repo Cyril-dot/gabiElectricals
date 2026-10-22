@@ -63,7 +63,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           </div>
         ) : (
           <div className="mt-5 bg-success/10 border border-success/30 rounded-xl p-4">
-            <p className="text-sm font-semibold text-success inline-flex items-center gap-1.5"><Icon name="check" size={16} />{order.status === 'DELIVERED' ? 'Delivered — thank you for choosing genuine.' : order.fulfilment === 'PICKUP' ? 'Confirmed — collect at ' + settings.business.address : 'Confirmed and paid — packing soon.'}</p>
+            <p className="text-sm font-semibold text-success inline-flex items-center gap-1.5"><Icon name="check" size={16} />{order.status === 'DELIVERED' ? 'Delivered — thank you for choosing genuine.' : order.fulfilment === 'PICKUP' ? 'Confirmed — collect at ' + (order.addrCity ?? settings.business.address) : 'Confirmed and paid — packing soon.'}</p>
           </div>
         )}
         {payRef && linkedPayment && (
@@ -107,7 +107,7 @@ export default async function OrderPage({ params, searchParams }: { params: Prom
           </dl>
           {(order.addrCity || order.fulfilment === 'PICKUP') && (
             <p className="text-[12.5px] text-soft mt-3">
-              {order.fulfilment === 'PICKUP' ? `Pickup: ${settings.business.address}` : `Delivering to ${order.addrCity}${order.addrRegion ? `, ${order.addrRegion}` : ''}${order.addrLandmark ? ` — landmark: ${order.addrLandmark}` : ''}`}
+              {order.fulfilment === 'PICKUP' ? `Pickup: ${order.addrCity ?? settings.business.address}` : `Delivering to ${order.addrCity}${order.addrRegion ? `, ${order.addrRegion}` : ''}${order.addrLandmark ? ` — landmark: ${order.addrLandmark}` : ''}`}
             </p>
           )}
         </section>

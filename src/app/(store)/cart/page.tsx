@@ -15,7 +15,7 @@ export default async function CartPage() {
     <div className="container-x py-6 md:py-10">
       <h1 className="font-display text-2xl md:text-3xl font-extrabold mb-1">Your cart</h1>
       <p className="text-sm text-soft mb-6">Prices include VAT. Delivery and coupons applied below — nothing hidden at checkout.</p>
-      <CartClient tax={{ vatPct: settings.tax.vatPct, levyPct: settings.tax.levyPct }} walletCredit={credit} signedIn={!!session} />
+      <CartClient tax={{ vatPct: settings.tax.vatPct, levyPct: settings.tax.levyPct }} walletCredit={credit} signedIn={!!session} pickupLocations={settings.business.pickupLocations} />
     </div>
   );
 }

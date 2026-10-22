@@ -64,7 +64,7 @@ export default async function OrderInvoice({ params }: { params: Promise<{ id: s
           </div>
           <div>
             <p className="text-[11px] font-extrabold uppercase tracking-wide text-soft print:text-gray-600">Delivery</p>
-            <p className="mt-1 text-sm font-bold">{order.fulfilment === 'PICKUP' ? 'Store pickup — Osu, Accra' : order.zone?.name ?? 'Delivery'}</p>
+            <p className="mt-1 text-sm font-bold">{order.fulfilment === 'PICKUP' ? 'Store pickup — ' + (order.addrCity ?? 'Osu, Accra') : order.zone?.name ?? 'Delivery'}</p>
             <p className="text-sm">{[order.addrCity, order.addrRegion].filter(Boolean).join(', ')}</p>
             <p className="text-sm">{order.addrLandmark ?? order.addrLine ?? ''}</p>
             {order.addrGps && <p className="text-sm">GPS: {order.addrGps}</p>}

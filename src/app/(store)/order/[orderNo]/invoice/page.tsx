@@ -46,7 +46,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ orderN
             <p className="font-bold">{order.email}</p>
             <p>{order.phone}</p>
             {order.addrCity && <p>{order.addrLine ? order.addrLine + ', ' : ''}{order.addrCity}{order.addrRegion ? `, ${order.addrRegion}` : ''}{order.addrGps ? ` · GH GPS: ${order.addrGps}` : ''}</p>}
-            {order.fulfilment === 'PICKUP' && <p>Collection at {biz.name} — {biz.address}</p>}
+            {order.fulfilment === 'PICKUP' && <p>Collection at {biz.name} — {order.addrCity ?? biz.address}</p>}
           </div>
           <div className="sm:text-right">
             <p className="font-black uppercase text-[11px] tracking-widest text-soft mb-1">Order</p>

@@ -1,7 +1,7 @@
 import { prisma } from './db';
 
 export type Settings = {
-  business: { name: string; tagline: string; phone: string; whatsapp: string; email: string; address: string; gps: string; hours: string };
+  business: { name: string; tagline: string; phone: string; whatsapp: string; email: string; address: string; gps: string; hours: string; pickupLocations: string[] };
   tax: { vatPct: number; vatInclusive: boolean; levyPct: number };
   referral: { referrerReward: number; friendReward: number; minOrder: number; minPayout: number; affiliateDefaultPct: number };
   payments: { enabled: Record<string, boolean>; qrExpiryMinutes: number };
@@ -9,7 +9,7 @@ export type Settings = {
 };
 
 export const DEFAULT_SETTINGS: Settings = {
-  business: { name: 'GabiElectricals', tagline: 'Premium Power. Trusted Safety. Done Right.', phone: '+233 24 100 2030', whatsapp: '+233 24 100 2030', email: 'hello@gabielectricals.com', address: 'Ghana House, 44 Liberation Link, Osu, Accra', gps: 'DG-123-4567', hours: 'Mon–Sat 7:00–18:00 · Emergency 24/7' },
+  business: { name: 'GabiElectricals', tagline: 'Premium Power. Trusted Safety. Done Right.', phone: '+233 24 100 2030', whatsapp: '+233 24 100 2030', email: 'hello@gabielectricals.com', address: 'Ghana House, 44 Liberation Link, Osu, Accra', gps: 'DG-123-4567', hours: 'Mon–Sat 7:00–18:00 · Emergency 24/7', pickupLocations: ['Kasoa Millennium City', 'Amasaman', 'Dawhenya', 'Nsakye'] },
   tax: { vatPct: 15, vatInclusive: true, levyPct: 2.5 },
   referral: { referrerReward: 20, friendReward: 20, minOrder: 150, minPayout: 100, affiliateDefaultPct: 5 },
   payments: { enabled: { MOMO_MTN: true, MOMO_TELECEL: true, MOMO_AT: true, CARD: true, BANK_TRANSFER: true, GHIPSS: true, QR: true, PAY_ON_DELIVERY: true, MANUAL_TRANSFER: true }, qrExpiryMinutes: 15 },
@@ -22,6 +22,9 @@ export async function getSettings(): Promise<Settings> {
   for (const r of rows) {
     try { out[r.key] = JSON.parse(r.valueJson); } catch { /* keep default */ }
   }
+  // A stored `business` row replaces the whole object, so merge defensively —
+  // newer fields (e.g. pickupLocations) must never come back undefined.
+  out.business = { ...DEFAULT_SETTINGS.business, ...((out.business ?? {}) as Partial<Settings['business']>) };
   return out as Settings;
 }
 
