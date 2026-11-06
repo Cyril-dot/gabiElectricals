@@ -33,7 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {children}
         </ToastProvider>
         <script dangerouslySetInnerHTML={{ __html: `
-// GA4 / Meta Pixel ready — populated from Settings when keys are provided (see README analytics)
+// GA4 loads only after cookie consent (see CookieConsent), from
+// NEXT_PUBLIC_GA4_MEASUREMENT_ID — nothing is sent until that ID is set.
 window.dataLayer=window.dataLayer||[];
 if('serviceWorker' in navigator && !location.pathname.startsWith('/admin'))addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));` }} />
       </body>
